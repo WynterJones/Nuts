@@ -963,6 +963,23 @@ body {
   border-color: #00d4aa;
 }
 
+.setting-group input[type="text"] {
+  width: 100%;
+  background: #0a0a0a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.setting-group input[type="text"]:focus {
+  outline: none;
+  border-color: #00d4aa;
+}
+
 .setting-group select {
   width: 100%;
   background: #0a0a0a;
@@ -1407,7 +1424,6 @@ body {
   align-items: center;
   justify-content: center;
   margin-top: 2px;
-  top: 56px;
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark {
@@ -1722,4 +1738,182 @@ body {
 
 .copyright-badge a:hover {
   color: #ffffff;
+}
+
+/* API Key Gate Styles */
+.api-key-gate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.api-key-gate-content {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.gate-header {
+  margin-bottom: 32px;
+}
+
+.gate-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+}
+
+.gate-header h2 {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.gate-header p {
+  color: #666666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.gate-form {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.gate-form .form-group {
+  margin-bottom: 20px;
+}
+
+.gate-form label {
+  display: block;
+  color: #ffffff;
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.gate-input,
+.gate-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #1a1a1a;
+  border-radius: 8px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.gate-input:focus,
+.gate-select:focus {
+  outline: none;
+  border-color: #00d4aa;
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
+}
+
+.gate-input-note {
+  font-size: 12px;
+  color: #666666;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.gate-buttons {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.gate-test-btn,
+.gate-save-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gate-test-btn {
+  background: #333333;
+  color: #ffffff;
+}
+
+.gate-test-btn:hover {
+  background: #444444;
+  transform: translateY(-1px);
+}
+
+.gate-save-btn {
+  background: #00d4aa;
+  color: #000000;
+}
+
+.gate-save-btn:hover {
+  background: #00b894;
+  transform: translateY(-1px);
+}
+
+.gate-status {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+  min-height: 20px;
+}
+
+.gate-status.success {
+  background: rgba(0, 212, 170, 0.1);
+  color: #00d4aa;
+  border: 1px solid rgba(0, 212, 170, 0.3);
+}
+
+.gate-status.error {
+  background: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.gate-status.loading {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.gate-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.gate-footer p {
+  color: #666666;
+  font-size: 13px;
+  margin: 0;
+}
+
+.gate-footer a {
+  color: #00d4aa;
+  text-decoration: none;
+}
+
+.gate-footer a:hover {
+  text-decoration: underline;
 }

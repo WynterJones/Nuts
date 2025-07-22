@@ -89,9 +89,13 @@ class BackgroundService {
       }
 
       const useSupabase = message.useSupabase !== false; // Default to true if not specified
+
+      console.log("useSupabase", useSupabase);
       const techStack = useSupabase
         ? "React, Vite, TypeScript, Tailwind CSS, Supabase, Netlify"
         : "React, Vite, TypeScript, Tailwind CSS, Netlify";
+
+      console.log("techStack", techStack);
 
       const databaseSection = useSupabase
         ? "   - **Database & Backend** (Supabase setup, tables, auth, policies)\n   - **Authentication & User Management**\n"

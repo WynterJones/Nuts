@@ -6,12 +6,6 @@ class SettingsManager {
     this.setupEventListeners();
   }
 
-  initElements() {
-    this.starterPromptTextarea = document.getElementById("starterPrompt");
-    this.appendPromptTextarea = document.getElementById("appendPrompt");
-    this.saveSettingsBtn = document.getElementById("saveSettingsBtn");
-  }
-
   setupEventListeners() {
     // Listen for tab changes to render settings when settings tab is active
     eventBus.on("tab:changed", (tab) => {
@@ -100,17 +94,29 @@ class SettingsManager {
   }
 
   updateUI() {
-    this.starterPromptTextarea.value = this.settings.starterPrompt;
-    this.appendPromptTextarea.value = this.settings.appendPrompt;
+    // Only update UI if elements exist (settings tab has been rendered)
+    const starterPromptInput = document.getElementById("starterPromptInput");
+    const appendPromptInput = document.getElementById("appendPromptInput");
+
+    if (starterPromptInput) {
+      starterPromptInput.value = this.settings.starterPrompt || "";
+    }
+
+    if (appendPromptInput) {
+      appendPromptInput.value = this.settings.appendPrompt || "";
+    }
   }
 
   showSaveSuccess() {
-    const originalText = this.saveSettingsBtn.textContent;
-    this.saveSettingsBtn.textContent = "Saved!";
-    this.saveSettingsBtn.style.background = "#00b894";
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    if (!saveBtn) return;
+
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = "Saved!";
+    saveBtn.style.background = "#00b894";
 
     setTimeout(() => {
-      this.saveSettingsBtn.innerHTML = `
+      saveBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
           <polyline points="17,21 17,13 7,13 7,21"></polyline>
@@ -118,17 +124,20 @@ class SettingsManager {
         </svg>
         Save Settings
       `;
-      this.saveSettingsBtn.style.background = "#00d4aa";
+      saveBtn.style.background = "#00d4aa";
     }, 2000);
   }
 
   showSaveError() {
-    const originalText = this.saveSettingsBtn.textContent;
-    this.saveSettingsBtn.textContent = "Error!";
-    this.saveSettingsBtn.style.background = "#ff4757";
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    if (!saveBtn) return;
+
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = "Error!";
+    saveBtn.style.background = "#ff4757";
 
     setTimeout(() => {
-      this.saveSettingsBtn.innerHTML = `
+      saveBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
           <polyline points="17,21 17,13 7,13 7,21"></polyline>
@@ -136,7 +145,7 @@ class SettingsManager {
         </svg>
         Save Settings
       `;
-      this.saveSettingsBtn.style.background = "#00d4aa";
+      saveBtn.style.background = "#00d4aa";
     }, 2000);
   }
 
@@ -199,8 +208,35 @@ class SettingsManager {
     const settingsContent = document.getElementById("settingsContent");
     if (!settingsContent) return;
 
+    // Get current project title
+    const currentProjectTitle =
+      window.projectManager && window.projectManager.projectData
+        ? window.projectManager.projectData.title || ""
+        : "";
+
+    // Check if we have a current project
+    const hasCurrentProject =
+      window.projectManager && window.projectManager.currentProject;
+
     settingsContent.innerHTML = `
       <div class="settings-container">
+        ${
+          hasCurrentProject
+            ? `
+        <div class="setting-group">
+          <h3>Project Title</h3>
+          <p class="setting-description">Change the title of the current project. This will be displayed in the project list.</p>
+          <input 
+            type="text"
+            id="projectTitleInput" 
+            placeholder="My Awesome App"
+            value="${CoreUtils.escapeHtml(currentProjectTitle)}"
+          />
+        </div>
+        `
+            : ""
+        }
+
         <div class="setting-group">
           <h3>Starter Prompt</h3>
           <p class="setting-description">This prompt is used when starting a new project from the root domain (bolt.new). It helps initialize the project.</p>
@@ -248,11 +284,34 @@ class SettingsManager {
 
     // Setup event listeners
     const saveBtn = document.getElementById("saveSettingsBtn");
+    const projectTitleInput = document.getElementById("projectTitleInput");
     const starterPromptInput = document.getElementById("starterPromptInput");
     const appendPromptInput = document.getElementById("appendPromptInput");
     const waitTimeSelect = document.getElementById("waitTimeSelect");
 
     saveBtn.addEventListener("click", () => {
+      // Save project title separately
+      if (
+        projectTitleInput &&
+        window.projectManager &&
+        window.projectManager.projectData
+      ) {
+        const newTitle = projectTitleInput.value.trim();
+        if (newTitle && newTitle !== window.projectManager.projectData.title) {
+          window.projectManager.projectData.title = newTitle;
+          window.projectManager.saveProjectData();
+          console.log("Project title updated:", newTitle);
+
+          // Update UI to reflect the new title
+          if (window.uiManager) {
+            window.uiManager.updateProjectHeader(
+              window.projectManager.projectData
+            );
+          }
+        }
+      }
+
+      // Save settings
       this.settings.starterPrompt = starterPromptInput.value;
       this.settings.appendPrompt = appendPromptInput.value;
       this.settings.waitTime = parseInt(waitTimeSelect.value);
@@ -261,7 +320,12 @@ class SettingsManager {
     });
 
     // Auto-save on input changes
-    [starterPromptInput, appendPromptInput, waitTimeSelect].forEach((input) => {
+    const settingsInputs = [
+      starterPromptInput,
+      appendPromptInput,
+      waitTimeSelect,
+    ].filter(Boolean);
+    settingsInputs.forEach((input) => {
       input.addEventListener("change", () => {
         this.settings.starterPrompt = starterPromptInput.value;
         this.settings.appendPrompt = appendPromptInput.value;
@@ -269,6 +333,31 @@ class SettingsManager {
         this.saveSettings();
       });
     });
+
+    // Auto-save project title on change
+    if (projectTitleInput) {
+      projectTitleInput.addEventListener("change", () => {
+        const newTitle = projectTitleInput.value.trim();
+        if (
+          newTitle &&
+          window.projectManager &&
+          window.projectManager.projectData
+        ) {
+          if (newTitle !== window.projectManager.projectData.title) {
+            window.projectManager.projectData.title = newTitle;
+            window.projectManager.saveProjectData();
+            console.log("Project title auto-saved:", newTitle);
+
+            // Update UI to reflect the new title
+            if (window.uiManager) {
+              window.uiManager.updateProjectHeader(
+                window.projectManager.projectData
+              );
+            }
+          }
+        }
+      });
+    }
   }
 }
 

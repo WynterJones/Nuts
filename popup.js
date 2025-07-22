@@ -26,6 +26,9 @@ class PopupManager {
 
     if (result.openai_model) {
       this.modelSelect.value = result.openai_model;
+    } else {
+      // Set default model to match iframe gate default
+      this.modelSelect.value = "gpt-4o-mini";
     }
   }
 

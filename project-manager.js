@@ -127,14 +127,14 @@ class ProjectManager {
       const allData = await StorageManager.getAll();
       this.allProjects = {};
 
-      // Simply load all projects - no aggressive duplicate removal
+      // Load projects with validation to filter out invalid/corrupted data
       Object.keys(allData).forEach((key) => {
         if (key.startsWith("project_")) {
           const projectId = key.replace("project_", "");
           const projectData = allData[key];
 
-          // Only skip if the project data is invalid
-          if (projectData && typeof projectData === "object") {
+          // Validate project ID format and data structure
+          if (this.isValidProject(projectId, projectData)) {
             // Migrate projects without settings
             if (!projectData.settings) {
               projectData.settings = {
@@ -157,7 +157,16 @@ class ProjectManager {
               }`
             );
           } else {
-            console.warn(`Skipping invalid project data for: ${projectId}`);
+            console.warn(`Skipping invalid project: ${projectId}`, {
+              hasData: !!projectData,
+              dataType: typeof projectData,
+              title: projectData?.title,
+              hasCreatedAt: !!projectData?.createdAt,
+              hasTodos: Array.isArray(projectData?.todos),
+              hasChatHistory: Array.isArray(projectData?.chatHistory),
+            });
+            // Optionally clean up invalid projects from storage
+            this.cleanupInvalidProject(key, projectId);
           }
         }
       });
@@ -168,6 +177,66 @@ class ProjectManager {
       this.renderProjectList();
     } catch (error) {
       console.error("Error loading projects:", error);
+    }
+  }
+
+  isValidProject(projectId, projectData) {
+    // Check if project data exists and is an object
+    if (!projectData || typeof projectData !== "object") {
+      return false;
+    }
+
+    // Check if project ID follows the expected format
+    // Valid format: title-timestamp-randomsuffix (e.g., "my-app-1234567890-abc123")
+    // Should not be single characters like "~" or generic names like "default"
+    if (!projectId || projectId.length < 5) {
+      return false;
+    }
+
+    // Filter out clearly invalid project IDs
+    const invalidIds = ["~", "default", "undefined", "null", "test"];
+    if (invalidIds.includes(projectId)) {
+      return false;
+    }
+
+    // Check if project has required fields
+    const requiredFields = ["createdAt"];
+    for (const field of requiredFields) {
+      if (!projectData[field]) {
+        return false;
+      }
+    }
+
+    // Check if arrays exist (they can be empty, but should be arrays)
+    if (projectData.todos && !Array.isArray(projectData.todos)) {
+      return false;
+    }
+
+    if (projectData.chatHistory && !Array.isArray(projectData.chatHistory)) {
+      return false;
+    }
+
+    // If project has a title, it should be a non-empty string
+    if (projectData.title && typeof projectData.title !== "string") {
+      return false;
+    }
+
+    return true;
+  }
+
+  async cleanupInvalidProject(storageKey, projectId) {
+    try {
+      // Only clean up clearly invalid projects to avoid data loss
+      const veryInvalidIds = ["~", "", "undefined", "null"];
+
+      if (veryInvalidIds.includes(projectId)) {
+        console.log(`Cleaning up clearly invalid project: ${storageKey}`);
+        await StorageManager.remove(storageKey);
+      } else {
+        console.log(`Keeping potentially recoverable project: ${projectId}`);
+      }
+    } catch (error) {
+      console.error(`Error cleaning up invalid project ${storageKey}:`, error);
     }
   }
 
@@ -322,6 +391,17 @@ class ProjectManager {
       console.log("Create project clicked");
       this.createNewProject();
     });
+
+    // Setup checkbox click debugging (can be removed later)
+    const useSupabaseCheckbox = modal.querySelector("#useSupabase");
+    if (useSupabaseCheckbox) {
+      useSupabaseCheckbox.addEventListener("change", (e) => {
+        console.log("Checkbox changed:", {
+          checked: e.target.checked,
+          value: e.target.value,
+        });
+      });
+    }
 
     // Focus the title input
     setTimeout(() => {
