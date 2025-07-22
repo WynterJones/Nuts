@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Nuts for Bolt",
+  "version": "1.0.0",
+  "description": "AI-powered agent, project tracker and chat for bolt.new",
+
+  "permissions": ["storage", "activeTab"],
+
+  "host_permissions": ["https://bolt.new/*", "https://api.openai.com/*"],
+
+  "content_scripts": [
+    {
+      "matches": ["https://bolt.new/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Configure Bolt Assistant"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["iframe.html", "iframe.css", "iframe.js"],
+      "matches": ["https://bolt.new/*"]
+    }
+  ]
+}

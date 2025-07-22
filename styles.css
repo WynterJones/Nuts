@@ -1,0 +1,64 @@
+#bolt-assistant-btn[data-state="open"] svg {
+  color: #3b82f6 !important;
+}
+
+#bolt-assistant-btn:hover svg {
+  color: #2563eb !important;
+}
+
+.bolt-assistant-iframe {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 800px;
+  height: 600px;
+  z-index: 9999;
+
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  background: white;
+
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 1024px) {
+  .bolt-assistant-iframe {
+    width: calc(100vw - 40px);
+    height: calc(100vh - 120px);
+    top: 80px;
+    right: 20px;
+    left: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bolt-assistant-iframe {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 80px);
+    top: 60px;
+    right: 10px;
+    left: 10px;
+  }
+}
+
+.bolt-assistant-iframe::-webkit-scrollbar {
+  display: none;
+}
+
+.bolt-assistant-iframe {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

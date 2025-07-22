@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="iframe.css" />
+  </head>
+  <body>
+    <div class="assistant-container">
+      <!-- Draggable Header -->
+      <div id="draggableHeader" class="header">
+        <div class="header-left">
+          <button
+            id="backBtn"
+            class="header-btn hidden"
+            title="Back to projects"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <div class="project-info">
+            <h3 id="projectName">Nuts for Bolt</h3>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button
+            id="deleteProjectBtn"
+            class="header-btn delete-btn hidden"
+            title="Delete project"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"
+              />
+            </svg>
+          </button>
+          <button
+            id="clearBtn"
+            class="header-btn hidden"
+            title="Clear current tab data"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"
+              />
+            </svg>
+          </button>
+          <button id="closeBtn" class="header-btn" title="Close assistant">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Project List View -->
+      <div id="projectListView" class="project-list-view">
+        <div class="section-header">
+          <h2>All Projects</h2>
+          <div class="header-actions">
+            <button id="newProjectBtn" class="new-project-btn">
+              New Project
+            </button>
+          </div>
+        </div>
+        <div id="projectsGrid" class="projects-grid">
+          <div class="empty-state">
+            <p>No projects found. Create your first project to get started!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Project View -->
+      <div id="mainProjectView" class="main-project-view hidden">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+          <button class="tab-btn active" data-tab="tasks">Tasks</button>
+          <button class="tab-btn" data-tab="chat">Chat</button>
+          <button class="tab-btn" data-tab="automation">Automation</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Tasks Tab -->
+          <div id="tasksTab" class="tab-pane active">
+            <div class="section-header">
+              <h4>Project Tasks</h4>
+              <button id="addTodoBtn" class="add-btn">Add Task</button>
+            </div>
+
+            <div id="todoInputContainer" class="todo-input-container hidden">
+              <input
+                type="text"
+                id="todoInput"
+                placeholder="Enter a new task..."
+                class="todo-input"
+              />
+              <div class="input-actions">
+                <button id="saveTodoBtn" class="save-btn">Save</button>
+                <button id="cancelTodoBtn" class="cancel-btn">Cancel</button>
+              </div>
+            </div>
+
+            <div id="todosList" class="todos-list">
+              <div class="empty-state">
+                <p>No tasks yet. Add one to get started!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Tab -->
+          <div id="chatTab" class="tab-pane">
+            <div class="section-header">
+              <h4>AI Assistant</h4>
+              <div class="chat-controls">
+                <span id="typingIndicator" class="typing-indicator hidden"
+                  >AI is typing...</span
+                >
+                <button id="clearChatBtn" class="clear-chat-btn">
+                  Clear Chat
+                </button>
+              </div>
+            </div>
+
+            <div class="chat-container">
+              <div id="chatMessages" class="chat-messages">
+                <div class="message system-message">
+                  <div class="message-content">
+                    <p>
+                      Hello! I'm Nuts for Bolt, your AI agent. I can help you
+                      manage tasks, answer questions about your project, and
+                      provide development guidance. Try asking me to "add a
+                      task" or "complete the first task"!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-input-container">
+                <div class="input-wrapper">
+                  <textarea
+                    id="chatInput"
+                    placeholder="Ask me to manage tasks, add features, or answer questions..."
+                    rows="1"
+                  ></textarea>
+                  <button id="sendBtn" class="send-btn">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22,2 15,22 11,13 2,9" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Automation Tab -->
+          <div id="automationTab" class="tab-pane">
+            <div class="section-header">
+              <h4>Automation</h4>
+              <button id="addAutomationBtn" class="add-btn">Add Rule</button>
+            </div>
+
+            <div id="automationList" class="automation-list">
+              <div class="empty-state">
+                <p>
+                  No automation rules yet. Create rules to automate your
+                  workflow!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="core.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="project-manager.js"></script>
+    <script src="chat-manager.js"></script>
+    <script src="iframe.js"></script>
+  </body>
+</html>
