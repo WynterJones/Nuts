@@ -12,7 +12,6 @@ class ChatManager {
     this.chatInput = document.getElementById("chatInput");
     this.sendBtn = document.getElementById("sendBtn");
     this.typingIndicator = document.getElementById("typingIndicator");
-    this.clearChatBtn = document.getElementById("clearChatBtn");
   }
 
   setupEventListeners() {
@@ -25,7 +24,6 @@ class ChatManager {
     });
 
     this.chatInput.addEventListener("input", () => this.handleInputResize());
-    this.clearChatBtn.addEventListener("click", () => this.clearChat());
 
     // Listen to events
     eventBus.on("project:loaded", (projectData) =>
@@ -192,7 +190,7 @@ class ChatManager {
       defaultSystemMessage.innerHTML = `
         <div class="max-w-[90%]">
           <div class="message-content">
-            <p>🌟 Welcome to <strong>Nuts for Bolt</strong>! I'm your AI development assistant.</p>
+            <p>🥜 Welcome to <strong>Nuts for Bolt</strong></p>
             <p style="margin-top: 12px; font-size: 14px; opacity: 0.9;">I can help you manage tasks with full CRUD operations, perform bulk actions, answer questions about your project, and provide development guidance. Try asking me to <em>"add a task"</em>, <em>"complete all pending tasks"</em>, or <em>"delete completed tasks"</em>!</p>
             <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">💡 <strong>Pro tip:</strong> Once your tasks are ready, use the Automation tab to run autopilot mode and build your app automatically!</p>
           </div>

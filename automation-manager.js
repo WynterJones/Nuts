@@ -476,9 +476,7 @@ class AutomationManager {
     if (!automationTab) return;
 
     automationTab.innerHTML = `
-      <div class="section-header">
-        <h4>Automation Settings</h4>
-      </div>
+     
       <div class="automation-settings">
         <div class="setting-group">
           <div class="setting-item">

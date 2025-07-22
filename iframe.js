@@ -5,6 +5,9 @@ class IframeApp {
   }
 
   initializeApp() {
+    // Load the project icon
+    this.loadProjectIcon();
+
     // Initialize all managers
     window.uiManager = new UIManager();
     window.projectManager = new ProjectManager();
@@ -16,6 +19,13 @@ class IframeApp {
     window.projectManager.loadAllProjects();
 
     console.log("Nuts for Bolt iframe initialized");
+  }
+
+  loadProjectIcon() {
+    const iconElement = document.getElementById("projectIcon");
+    if (iconElement) {
+      iconElement.src = chrome.runtime.getURL("icon/128.png");
+    }
   }
 }
 

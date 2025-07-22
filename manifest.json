@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Nuts for Bolt",
   "version": "1.0.0",
-  "description": "AI-powered agent, project tracker and chat for bolt.new",
+  "description": "AI-powered agent to chat, manage tasks, and automate your project creation on bolt.new. Powered by your own OpenAI API key.",
 
   "icons": {
     "16": "icon/16.png",
@@ -37,6 +37,7 @@
       "resources": [
         "iframe.html",
         "iframe.css",
+        "icon/128.png",
         "core.js",
         "ui-manager.js",
         "project-manager.js",

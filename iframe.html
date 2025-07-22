@@ -16,6 +16,7 @@
       <div class="header">
         <div class="header-left">
           <div class="project-info">
+            <img id="projectIcon" class="project-icon" alt="Nuts for Bolt" />
             <h3 id="projectName">Nuts for Bolt</h3>
           </div>
         </div>
@@ -185,21 +186,11 @@
 
           <!-- Chat Tab -->
           <div id="chatTab" class="tab-pane">
-            <div class="section-header">
-              <h4>AI Chat</h4>
-              <div class="chat-controls">
-                <div id="typingIndicator" class="typing-indicator hidden">
-                  AI is typing...
-                </div>
-                <button id="clearChatBtn" class="clear-chat-btn">
-                  Clear Chat
-                </button>
-              </div>
-            </div>
-
             <div class="chat-container">
               <div id="chatMessages" class="chat-messages"></div>
-
+              <div id="typingIndicator" class="typing-indicator hidden">
+                AI is typing...
+              </div>
               <div class="chat-input-container">
                 <div class="input-wrapper">
                   <textarea
@@ -226,10 +217,6 @@
 
           <!-- Automation Tab -->
           <div id="automationTab" class="tab-pane">
-            <div class="section-header">
-              <h4>Automation Settings</h4>
-            </div>
-
             <div class="automation-settings">
               <div class="setting-group">
                 <div class="setting-item">
@@ -342,6 +329,17 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Copyright Badge -->
+      <div class="copyright-badge">
+        <a
+          href="https://SingleTenantSoftware.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          &copy; 2025 Wynter.AI - SingleTenantSoftware.com
+        </a>
       </div>
     </div>
 
