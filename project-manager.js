@@ -599,8 +599,10 @@ class ProjectManager {
     console.log("Project created successfully:", projectId, projectData.title);
     console.log("Total projects now:", Object.keys(this.allProjects).length);
 
-    // Force re-render the project list and switch to the new project
-    this.renderTodos();
+    // Properly switch to the newly created project
+    this.openProject(projectId);
+
+    // Emit event for other managers to update
     eventBus.emit("project:created", projectData);
   }
 
