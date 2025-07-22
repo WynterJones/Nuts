@@ -4,6 +4,12 @@
   "version": "1.0.0",
   "description": "AI-powered agent, project tracker and chat for bolt.new",
 
+  "icons": {
+    "16": "icon/16.png",
+    "48": "icon/48.png",
+    "128": "icon/128.png"
+  },
+
   "permissions": ["storage", "activeTab"],
 
   "host_permissions": ["https://bolt.new/*", "https://api.openai.com/*"],
@@ -28,7 +34,16 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["iframe.html", "iframe.css", "iframe.js"],
+      "resources": [
+        "iframe.html",
+        "iframe.css",
+        "core.js",
+        "ui-manager.js",
+        "project-manager.js",
+        "chat-manager.js",
+        "automation-manager.js",
+        "iframe.js"
+      ],
       "matches": ["https://bolt.new/*"]
     }
   ]
