@@ -73,18 +73,16 @@ class UIManager {
     }
 
     let isDragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+    let lastX = 0;
+    let lastY = 0;
 
     header.addEventListener("mousedown", (e) => {
       // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
       isDragging = true;
-
-      // Store initial mouse position
-      offsetX = e.clientX;
-      offsetY = e.clientY;
+      lastX = e.clientX;
+      lastY = e.clientY;
 
       document.body.style.userSelect = "none";
       e.preventDefault();
@@ -95,15 +93,12 @@ class UIManager {
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
-      // Calculate how much the mouse has moved
-      const deltaX = e.clientX - offsetX;
-      const deltaY = e.clientY - offsetY;
+      const deltaX = e.clientX - lastX;
+      const deltaY = e.clientY - lastY;
 
-      // Update stored position
-      offsetX = e.clientX;
-      offsetY = e.clientY;
+      lastX = e.clientX;
+      lastY = e.clientY;
 
-      // Send delta movement to parent
       window.parent.postMessage(
         {
           type: "MOVE_IFRAME",
