@@ -98,7 +98,7 @@ class BackgroundService {
         : "   - **Data Management** (Local state, localStorage, or static data as needed)\n";
 
       const integrationSection = useSupabase
-        ? "   - **Integration & API** (Supabase functions if needed)\n"
+        ? "   - **Integration & API** (Supabase Edge Functions for server-side logic, API integrations)\n"
         : "";
 
       const prompt = `Based on this project description, create a comprehensive task list for building a complete web application${
@@ -117,13 +117,18 @@ Database/Auth: ${
           : "No - Client-side only application"
       }
 
+**PLATFORM SPECIFICS:**
+- **Bolt.new** automatically handles Netlify deployment, so do NOT create manual deployment tasks
+- **Supabase** handles database, user authentication, and serverless functions - use for anything requiring API keys or environment variables
+- Focus on application logic and features rather than infrastructure setup
+
 **INSTRUCTIONS:**
 1. Create 8-15 specific, actionable tasks that cover the full development lifecycle:
    - **Frontend Structure** (React components, pages, routing)
 ${databaseSection}   - **Core Features** (based on the description)
    - **Styling & UI/UX** (Tailwind implementation)
 ${integrationSection}   - **Testing & Quality** (validation, error handling)
-   - **Deployment & Production** (Netlify deployment, environment setup)
+   - **Environment & Integration** (Supabase configuration, environment variables)
 
 2. Generate a starter prompt that will be used when initializing this project in Bolt.new. The starter prompt should:
    - Be specific to this project type and requirements
@@ -133,8 +138,8 @@ ${integrationSection}   - **Testing & Quality** (validation, error handling)
 
 ${
   useSupabase
-    ? "IMPORTANT: Include Supabase database setup, table creation, authentication setup, and Row Level Security policies as needed."
-    : "IMPORTANT: This is a client-side only application. Do NOT create tasks for database setup, user authentication, or backend services. Focus on frontend-only features using local state management."
+    ? "IMPORTANT: Include Supabase database setup, table creation, authentication setup, Row Level Security policies, and Supabase Edge Functions for server-side logic. Use Supabase for anything requiring API keys, environment variables, or server-side processing. Do NOT create manual Netlify deployment tasks as Bolt.new handles this automatically."
+    : "IMPORTANT: This is a client-side only application. Do NOT create tasks for database setup, user authentication, backend services, or manual deployment. Focus on frontend-only features using local state management. Bolt.new will handle Netlify deployment automatically."
 }
 
 Make each task specific and actionable. Use priority levels:
