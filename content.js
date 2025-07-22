@@ -194,36 +194,22 @@ window.addEventListener("message", (event) => {
     case "MOVE_IFRAME":
       if (assistantIframe) {
         const { deltaX, deltaY } = event.data;
+        const rect = assistantIframe.getBoundingClientRect();
 
-        // Get current position
-        const currentStyle = window.getComputedStyle(assistantIframe);
-        let currentLeft = parseInt(currentStyle.left) || 0;
-        let currentTop = parseInt(currentStyle.top) || 0;
-
-        // Handle initial right-positioned iframe
-        if (currentLeft === 0 && currentStyle.right !== "auto") {
-          const currentRight = parseInt(currentStyle.right) || 0;
-          currentLeft =
-            window.innerWidth - assistantIframe.offsetWidth - currentRight;
-        }
-
-        // Calculate new position
-        const newLeft = currentLeft + deltaX;
-        const newTop = currentTop + deltaY;
+        let newLeft = rect.left + deltaX;
+        let newTop = rect.top + deltaY;
 
         // Basic bounds checking
         const maxLeft = window.innerWidth - assistantIframe.offsetWidth;
         const maxTop = window.innerHeight - assistantIframe.offsetHeight;
 
-        const boundedLeft = Math.max(0, Math.min(maxLeft, newLeft));
-        const boundedTop = Math.max(0, Math.min(maxTop, newTop));
+        newLeft = Math.max(0, Math.min(maxLeft, newLeft));
+        newTop = Math.max(0, Math.min(maxTop, newTop));
 
-        // Apply simple positioning
-        assistantIframe.style.left = boundedLeft + "px";
-        assistantIframe.style.top = boundedTop + "px";
+        assistantIframe.style.left = `${newLeft}px`;
+        assistantIframe.style.top = `${newTop}px`;
         assistantIframe.style.right = "auto";
         assistantIframe.style.bottom = "auto";
-        assistantIframe.style.transform = "none";
       }
       break;
   }

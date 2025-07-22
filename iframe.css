@@ -426,6 +426,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  counter-reset: task-counter; /* Add this */
 }
 
 .empty-state {
@@ -438,11 +439,23 @@ body {
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 16px;
+  padding: 12px 16px; /* Adjust padding */
   background: #0a0a0a;
   border: 1px solid #1a1a1a;
   border-radius: 12px;
   transition: all 0.2s;
+  position: relative; /* Add this */
+}
+
+.todo-item:before {
+  content: counter(task-counter); /* Add counter */
+  counter-increment: task-counter; /* Increment counter */
+  font-size: 14px;
+  font-weight: 600;
+  color: #666666;
+  margin-right: 12px;
+  min-width: 16px;
+  text-align: right;
 }
 
 .todo-item:hover {
@@ -456,16 +469,61 @@ body {
   border-color: rgba(0, 212, 170, 0.3);
 }
 
-.todo-checkbox {
+.todo-checkbox-container {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
   margin-right: 12px;
-  width: 16px;
-  height: 16px;
   cursor: pointer;
+}
+
+.todo-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.todo-checkbox:checked ~ .checkmark {
+  background-color: #00d4aa;
+  border-color: #00d4aa;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.todo-checkbox:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .todo-text {
   flex: 1;
-  font-size: 15px;
+  font-size: 14px; /* Adjust font size */
   color: #ffffff;
 }
 
@@ -479,20 +537,35 @@ body {
   gap: 8px;
 }
 
+.drag-handle {
+  cursor: grab;
+  color: #666666;
+  margin-right: 8px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.todo-item:hover .drag-handle {
+  opacity: 1;
+}
+
 .delete-btn {
-  background: #ff4757;
-  color: #ffffff;
+  background: none; /* Remove background */
   border: none;
+  color: #666666; /* Subtle color */
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
+  opacity: 0.5;
 }
 
 .delete-btn:hover {
-  background: #ff3742;
-  transform: scale(1.05);
+  color: #ff4757; /* Red on hover */
+  background: rgba(255, 71, 87, 0.1);
+  opacity: 1;
+  transform: scale(1.05); /* Keep scale effect */
 }
 
 /* Chat Tab */

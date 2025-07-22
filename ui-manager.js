@@ -15,7 +15,6 @@ class UIManager {
     this.tabPanes = document.querySelectorAll(".tab-pane");
     this.deleteProjectBtn = document.getElementById("deleteProjectBtn");
     this.closeBtn = document.getElementById("closeBtn");
-    this.clearBtn = document.getElementById("clearBtn");
     this.backBtn = document.getElementById("backBtn");
     this.projectName = document.getElementById("projectName");
   }
@@ -41,13 +40,6 @@ class UIManager {
     this.deleteProjectBtn.addEventListener("click", () => {
       if (confirm("Are you sure you want to delete this project?")) {
         eventBus.emit("project:delete");
-      }
-    });
-
-    this.clearBtn.addEventListener("click", () => {
-      const activeTab = document.querySelector(".tab-btn.active")?.dataset.tab;
-      if (activeTab && confirm(`Clear all ${activeTab} data?`)) {
-        eventBus.emit("clear:tab", activeTab);
       }
     });
 
@@ -81,8 +73,8 @@ class UIManager {
       if (e.target.closest("button")) return;
 
       isDragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      lastX = e.screenX;
+      lastY = e.screenY;
 
       document.body.style.userSelect = "none";
       e.preventDefault();
@@ -93,11 +85,11 @@ class UIManager {
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
-      const deltaX = e.clientX - lastX;
-      const deltaY = e.clientY - lastY;
+      const deltaX = e.screenX - lastX;
+      const deltaY = e.screenY - lastY;
 
-      lastX = e.clientX;
-      lastY = e.clientY;
+      lastX = e.screenX;
+      lastY = e.screenY;
 
       window.parent.postMessage(
         {
@@ -153,7 +145,6 @@ class UIManager {
     this.projectName.textContent = "Nuts for Bolt";
     this.backBtn.classList.add("hidden");
     this.deleteProjectBtn.classList.add("hidden");
-    this.clearBtn.classList.add("hidden");
 
     eventBus.emit("view:projectList");
   }
@@ -165,7 +156,6 @@ class UIManager {
     // Update header for project view
     this.backBtn.classList.remove("hidden");
     this.deleteProjectBtn.classList.remove("hidden");
-    this.clearBtn.classList.remove("hidden");
 
     this.switchTab("tasks"); // Default to tasks tab
     eventBus.emit("view:mainProject");
