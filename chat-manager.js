@@ -136,30 +136,30 @@ class ChatManager {
       messageEl.className += " justify-end";
       messageContent = `
         <div class="max-w-[85%]">
-          <div class="bg-nuts text-black rounded-xl px-4 py-3 rounded-br-md">
-            <p class="text-sm font-medium">${formattedContent}</p>
+          <div class="message-content">
+            <p>${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-600 mt-1 text-right opacity-60">${time}</div>
+          <div class="message-timestamp">${time}</div>
         </div>
       `;
     } else if (message.role === "ai") {
       messageEl.className += " justify-start";
       messageContent = `
         <div class="max-w-[85%]">
-          <div class="bg-gray-900 text-white border border-gray-700 rounded-xl px-4 py-3 rounded-bl-md shadow-lg">
-            <p class="text-sm leading-relaxed">${formattedContent}</p>
+          <div class="message-content">
+            <p>${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-600 mt-1 opacity-60">${time}</div>
+          <div class="message-timestamp">${time}</div>
         </div>
       `;
     } else if (message.role === "system") {
       messageEl.className += " justify-center";
       messageContent = `
-        <div class="max-w-[90%]">
-          <div class="bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-center">
-            <p class="text-sm">${formattedContent}</p>
+        <div>
+          <div class="message-content">
+            <p>${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-600 mt-1 text-center opacity-60">${time}</div>
+          <div class="message-timestamp" style="text-align: center;">${time}</div>
         </div>
       `;
     }
@@ -171,10 +171,7 @@ class ChatManager {
   formatMessageContent(content) {
     return CoreUtils.escapeHtml(content)
       .replace(/\n/g, "<br>")
-      .replace(
-        /`([^`]+)`/g,
-        '<code class="bg-gray-700 px-1 py-0.5 rounded text-xs">$1</code>'
-      )
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/\*([^*]+)\*/g, "<em>$1</em>");
   }
@@ -194,8 +191,10 @@ class ChatManager {
         "message system-message flex justify-center mb-4";
       defaultSystemMessage.innerHTML = `
         <div class="max-w-[90%]">
-          <div class="bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-center">
-            <p class="text-sm">Hello! I'm Nuts for Bolt, your AI agent. I can help you manage tasks, answer questions about your project, and provide development guidance. Try asking me to "add a task" or "complete the first task"!</p>
+          <div class="message-content">
+            <p>🌟 Welcome to <strong>Nuts for Bolt</strong>! I'm your AI development assistant.</p>
+            <p style="margin-top: 12px; font-size: 14px; opacity: 0.9;">I can help you manage tasks with full CRUD operations, perform bulk actions, answer questions about your project, and provide development guidance. Try asking me to <em>"add a task"</em>, <em>"complete all pending tasks"</em>, or <em>"delete completed tasks"</em>!</p>
+            <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">💡 <strong>Pro tip:</strong> Once your tasks are ready, use the Automation tab to run autopilot mode and build your app automatically!</p>
           </div>
         </div>
       `;
