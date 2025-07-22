@@ -167,11 +167,17 @@ class AutomationManager {
   async runStartingSequence() {
     this.updateStatus("Running starting sequence...");
 
+    // Get current settings including starter prompt
+    const appSettings = window.settingsManager
+      ? window.settingsManager.getSettings()
+      : {};
+    const combinedSettings = { ...this.settings, ...appSettings };
+
     // Send message to content script to handle starting sequence
     window.parent.postMessage(
       {
         type: "RUN_STARTING_SEQUENCE",
-        settings: this.settings,
+        settings: combinedSettings,
       },
       "*"
     );
@@ -219,14 +225,26 @@ class AutomationManager {
 
     console.log("Executing task:", task.text);
 
+    // Get current settings including append prompt
+    const appSettings = window.settingsManager
+      ? window.settingsManager.getSettings()
+      : {};
+    const combinedSettings = { ...this.settings, ...appSettings };
+
+    // Modify task text to include append prompt if specified
+    let taskText = task.text;
+    if (appSettings.appendPrompt && appSettings.appendPrompt.trim()) {
+      taskText = `${task.text}\n\n${appSettings.appendPrompt}`;
+    }
+
     // Send task to content script for execution
     window.parent.postMessage(
       {
         type: "EXECUTE_TASK",
-        task: task,
+        task: { ...task, text: taskText },
         taskIndex: index,
         totalTasks: total,
-        settings: this.settings,
+        settings: combinedSettings,
       },
       "*"
     );

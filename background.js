@@ -96,22 +96,28 @@ Description: ${message.description}
 Tech Stack: React, Vite, TypeScript, Tailwind CSS, Supabase, Netlify
 
 **INSTRUCTIONS:**
-Create 8-15 specific, actionable tasks that cover the full development lifecycle:
-1. **Database & Backend** (Supabase setup, tables, auth, policies)
-2. **Frontend Structure** (React components, pages, routing)
-3. **Authentication & User Management**
-4. **Core Features** (based on the description)
-5. **Styling & UI/UX** (Tailwind implementation)
-6. **Integration & API** (Supabase functions if needed)
-7. **Testing & Quality** (validation, error handling)
-8. **Deployment & Production** (Netlify deployment, environment setup)
+1. Create 8-15 specific, actionable tasks that cover the full development lifecycle:
+   - **Database & Backend** (Supabase setup, tables, auth, policies)
+   - **Frontend Structure** (React components, pages, routing)
+   - **Authentication & User Management**
+   - **Core Features** (based on the description)
+   - **Styling & UI/UX** (Tailwind implementation)
+   - **Integration & API** (Supabase functions if needed)
+   - **Testing & Quality** (validation, error handling)
+   - **Deployment & Production** (Netlify deployment, environment setup)
+
+2. Generate a starter prompt that will be used when initializing this project in Bolt.new. The starter prompt should:
+   - Be specific to this project type and requirements
+   - Include the tech stack (React, Vite, TypeScript, Tailwind, Supabase)
+   - Mention key features from the description
+   - Be concise but informative (2-3 sentences max)
 
 Make each task specific and actionable. Use priority levels:
 - **high**: Critical path items, dependencies for other tasks
 - **normal**: Core feature development
 - **low**: Polish, optimization, nice-to-have features
 
-Use the add_task function for each task. Focus on creating a complete roadmap for a production-ready web application.`;
+Use the add_task function for each task and generate_starter_prompt function for the starter prompt. Focus on creating a complete roadmap for a production-ready web application.`;
 
       const result = await this.callOpenAI(
         prompt,
@@ -122,6 +128,7 @@ Use the add_task function for each task. Focus on creating a complete roadmap fo
       );
 
       let updatedProjectData = { ...message.projectData };
+      let generatedStarterPrompt = null;
 
       if (result.functionCalls && result.functionCalls.length > 0) {
         result.functionCalls.forEach((call) => {
@@ -136,8 +143,28 @@ Use the add_task function for each task. Focus on creating a complete roadmap fo
               createdBy: "ai",
             };
             updatedProjectData.todos.push(todo);
+          } else if (call.name === "generate_starter_prompt") {
+            generatedStarterPrompt = call.arguments.prompt;
           }
         });
+
+        // Save the generated starter prompt to settings if one was generated
+        if (generatedStarterPrompt) {
+          try {
+            const currentSettings = await chrome.storage.local.get(
+              "app_settings"
+            );
+            const settings = currentSettings.app_settings || {};
+            settings.starterPrompt = generatedStarterPrompt;
+            await chrome.storage.local.set({ app_settings: settings });
+            console.log(
+              "Generated starter prompt saved:",
+              generatedStarterPrompt
+            );
+          } catch (error) {
+            console.error("Failed to save starter prompt:", error);
+          }
+        }
 
         // Add a welcome message to chat history
         const taskCount = result.functionCalls.filter(
@@ -147,9 +174,15 @@ Use the add_task function for each task. Focus on creating a complete roadmap fo
         updatedProjectData.chatHistory.push({
           id: this.generateId(),
           role: "assistant",
-          content: `🚀 Welcome to your new project! I've created ${taskCount} comprehensive tasks to help you build "${message.projectData.title}" using the React+Vite+Supabase+Netlify stack. 
+          content: `🚀 Welcome to your new project! I've created ${taskCount} comprehensive tasks to help you build "${
+            message.projectData.title
+          }" using the React+Vite+Supabase+Netlify stack. 
 
-These tasks cover everything from database setup to deployment. Start with the high-priority tasks and work your way through the development lifecycle. Feel free to ask me questions about any of these tasks or request additional ones as your project evolves!`,
+These tasks cover everything from database setup to deployment. Start with the high-priority tasks and work your way through the development lifecycle.${
+            generatedStarterPrompt
+              ? "\n\nI've also generated a custom starter prompt for this project type that will be used when initializing new projects in Bolt."
+              : ""
+          } Feel free to ask me questions about any of these tasks or request additional ones as your project evolves!`,
           timestamp: new Date().toISOString(),
         });
       }
@@ -259,6 +292,24 @@ These tasks cover everything from database setup to deployment. Start with the h
                 },
               },
               required: ["task_id", "new_text"],
+            },
+          },
+        },
+        {
+          type: "function",
+          function: {
+            name: "generate_starter_prompt",
+            description:
+              "Generate a starter prompt for a new project in Bolt.new",
+            parameters: {
+              type: "object",
+              properties: {
+                prompt: {
+                  type: "string",
+                  description: "The generated starter prompt",
+                },
+              },
+              required: ["prompt"],
             },
           },
         },

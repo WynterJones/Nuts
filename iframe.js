@@ -10,6 +10,7 @@ class IframeApp {
     window.projectManager = new ProjectManager();
     window.chatManager = new ChatManager();
     window.automationManager = new AutomationManager();
+    window.settingsManager = new SettingsManager();
 
     // Load initial project list
     window.projectManager.loadAllProjects();

@@ -273,9 +273,9 @@ async function handleTaskGeneration(data) {
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
           {
-            type: "PROJECT_DATA",
+            type: "TASK_GENERATION_COMPLETE",
             project: data.projectId,
-            data: response.updatedProjectData,
+            projectData: response.updatedProjectData,
           },
           "*"
         );
@@ -335,8 +335,10 @@ async function handleStartingSequence(settings) {
     );
 
     if (textarea) {
-      console.log("Found start button, clicking...");
-      await typeText(textarea, "", settings.slowType);
+      console.log("Found start button, using starter prompt...");
+      const starterPrompt =
+        settings.starterPrompt || "What kind of frameworks can you use?";
+      await typeText(textarea, starterPrompt, settings.slowType);
       textarea.focus();
       textarea.dispatchEvent(
         new KeyboardEvent("keydown", {

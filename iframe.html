@@ -92,6 +92,7 @@
           <button class="tab-btn active" data-tab="chat">Chat</button>
           <button class="tab-btn" data-tab="tasks">Tasks</button>
           <button class="tab-btn" data-tab="automation">Automation</button>
+          <button class="tab-btn" data-tab="settings">Settings</button>
         </div>
 
         <!-- Tab Content -->
@@ -274,6 +275,65 @@
               </div>
             </div>
           </div>
+
+          <!-- Settings Tab -->
+          <div id="settingsTab" class="tab-pane">
+            <div class="section-header">
+              <h4>Settings</h4>
+            </div>
+
+            <div class="settings-container">
+              <div class="setting-group">
+                <div class="setting-item">
+                  <label class="setting-label">Starter Prompt</label>
+                  <p class="setting-description">
+                    This prompt is used when starting a new project from the
+                    root domain (bolt.new). It helps initialize the project.
+                  </p>
+                  <textarea
+                    id="starterPrompt"
+                    class="setting-textarea"
+                    rows="8"
+                    placeholder="Enter the prompt that will be used when starting a new project..."
+                  ></textarea>
+                </div>
+
+                <div class="setting-item">
+                  <label class="setting-label">Append Prompt</label>
+                  <p class="setting-description">
+                    This text will be appended to each task when sent to Bolt.
+                    Use it for consistent instructions across all tasks.
+                  </p>
+                  <textarea
+                    id="appendPrompt"
+                    class="setting-textarea"
+                    rows="4"
+                    placeholder="Keep files small, make and use reusable components"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="settings-actions">
+                <button id="saveSettingsBtn" class="save-settings-btn">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                    ></path>
+                    <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                    <polyline points="7,3 7,8 15,8"></polyline>
+                  </svg>
+                  Save Settings
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -287,6 +347,7 @@
     <script src="project-manager.js"></script>
     <script src="chat-manager.js"></script>
     <script src="automation-manager.js"></script>
+    <script src="settings-manager.js"></script>
     <script src="iframe.js"></script>
   </body>
 </html>

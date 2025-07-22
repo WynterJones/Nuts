@@ -42,6 +42,7 @@
         "project-manager.js",
         "chat-manager.js",
         "automation-manager.js",
+        "settings-manager.js",
         "iframe.js"
       ],
       "matches": ["https://bolt.new/*"]
