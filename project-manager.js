@@ -371,20 +371,18 @@ class ProjectManager {
     this.hideTodoInput();
   }
 
-  toggleTodo(todoId) {
-    const todo = this.projectData.todos.find((t) => t.id === todoId);
-    if (todo) {
-      todo.completed = !todo.completed;
-      todo.updatedAt = new Date().toISOString();
+  toggleTodo(id) {
+    const task = this.projectData.todos.find((t) => t.id === id);
+    if (task) {
+      task.completed = !task.completed;
+      task.updatedAt = new Date().toISOString();
       this.saveProjectData();
       this.renderTodos();
     }
   }
 
-  deleteTodo(todoId) {
-    this.projectData.todos = this.projectData.todos.filter(
-      (t) => t.id !== todoId
-    );
+  deleteTodo(id) {
+    this.projectData.todos = this.projectData.todos.filter((t) => t.id !== id);
     this.saveProjectData();
     this.renderTodos();
   }
@@ -404,70 +402,170 @@ class ProjectManager {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
-    const todoItems = sortedTodos
-      .map(
-        (todo) => `
-      <div class="todo-item ${todo.completed ? "completed" : ""}">
-        <input type="checkbox" ${todo.completed ? "checked" : ""} 
-               data-todo-id="${todo.id}"
-               class="todo-checkbox">
-        <span class="todo-text">${CoreUtils.escapeHtml(todo.text)}</span>
-        <div class="todo-actions">
-          <button data-todo-id="${todo.id}" 
-                  class="delete-btn" title="Delete task">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `
-      )
-      .join("");
+    this.todosList.innerHTML = ""; // Clear existing todos
+    sortedTodos.forEach((task) => {
+      const todoItem = this.createTodoItemElement(task);
+      this.todosList.appendChild(todoItem);
+    });
 
-    this.todosList.innerHTML = todoItems;
+    this.addDragAndDropListeners();
 
-    // Add event listeners using event delegation
-    this.setupTodoEventListeners();
+    // Update empty state
+    const emptyState = this.todosList.querySelector(".empty-state");
+    if (emptyState) {
+      if (this.projectData.todos.length > 0) {
+        emptyState.remove();
+      }
+    }
   }
 
-  setupTodoEventListeners() {
-    // Remove existing listeners to prevent duplicates
-    if (this.handleTodoToggle) {
-      this.todosList.removeEventListener("change", this.handleTodoToggle);
-    }
-    if (this.handleTodoDelete) {
-      this.todosList.removeEventListener("click", this.handleTodoDelete);
+  createTodoItemElement(task) {
+    const todoItem = document.createElement("div");
+    todoItem.className = `todo-item ${task.completed ? "completed" : ""}`;
+    todoItem.dataset.id = task.id;
+    todoItem.draggable = true;
+
+    todoItem.innerHTML = `
+      <div class="todo-checkbox-container">
+        <input type="checkbox" class="todo-checkbox" ${
+          task.completed ? "checked" : ""
+        }>
+        <span class="checkmark"></span>
+      </div>
+      <span class="todo-text">${CoreUtils.escapeHtml(task.text)}</span>
+      <div class="todo-actions">
+        <span class="drag-handle">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M5 15q-.425 0-.712-.288T4 14t.288-.712T5 13h14q.425 0 .713.288T20 14t-.288.713T19 15zm0-4q-.425 0-.712-.288T4 10t.288-.712T5 9h14q.425 0 .713.288T20 10t-.288.713T19 11z"/></svg>
+        </span>
+        <button class="delete-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m18 9l-.84 8.398c-.127 1.273-.19 1.909-.48 2.39a2.5 2.5 0 0 1-1.075.973C15.098 21 14.46 21 13.18 21h-2.36c-1.279 0-1.918 0-2.425-.24a2.5 2.5 0 0 1-1.076-.973c-.288-.48-.352-1.116-.48-2.389L6 9m7.5 6.5v-5m-3 5v-5m-6-4h4.615m0 0l.386-2.672c.112-.486.516-.828.98-.828h3.038c.464 0 .867.342.98.828l.386 2.672m-5.77 0h5.77m0 0H19.5"/></svg>
+        </button>
+      </div>
+    `;
+
+    // Event listeners
+    const checkbox = todoItem.querySelector(".todo-checkbox");
+    const deleteBtn = todoItem.querySelector(".delete-btn");
+    const todoText = todoItem.querySelector(".todo-text");
+
+    checkbox.addEventListener("change", () => this.toggleTodo(task.id));
+    deleteBtn.addEventListener("click", () => this.deleteTodo(task.id));
+    todoText.addEventListener("click", () =>
+      this.enterEditMode(todoText, task)
+    );
+
+    return todoItem;
+  }
+
+  enterEditMode(todoTextElement, task) {
+    // If another input is already open, close it first
+    const existingInput = document.querySelector(".todo-edit-input");
+    if (existingInput) {
+      existingInput.blur();
     }
 
-    // Add event listeners for checkboxes (toggle)
-    this.handleTodoToggle = (e) => {
-      if (e.target.classList.contains("todo-checkbox")) {
-        const todoId = e.target.getAttribute("data-todo-id");
-        if (todoId) {
-          console.log("Toggling todo:", todoId);
-          this.toggleTodo(todoId);
-        }
+    const currentText = task.text;
+    const todoItem = todoTextElement.closest(".todo-item");
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = currentText;
+    input.className = "todo-edit-input";
+
+    todoTextElement.replaceWith(input);
+    input.focus();
+    input.select();
+
+    const saveAndExit = () => {
+      const newText = input.value.trim();
+      if (newText && newText !== currentText) {
+        task.text = newText;
+        this.saveProjectData();
+      }
+      // Re-render to ensure UI consistency
+      this.renderTodos();
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        input.blur();
+      } else if (e.key === "Escape") {
+        // Revert without saving
+        this.renderTodos();
       }
     };
 
-    // Add event listeners for delete buttons
-    this.handleTodoDelete = (e) => {
-      if (e.target.closest(".delete-btn")) {
-        const todoId = e.target
-          .closest(".delete-btn")
-          .getAttribute("data-todo-id");
-        if (todoId) {
-          console.log("Deleting todo:", todoId);
-          this.deleteTodo(todoId);
+    input.addEventListener("blur", saveAndExit);
+    input.addEventListener("keydown", handleKeyDown);
+  }
+
+  addDragAndDropListeners() {
+    let draggedItem = null;
+
+    this.todosList.addEventListener("dragstart", (e) => {
+      if (e.target.classList.contains("todo-item")) {
+        draggedItem = e.target;
+        setTimeout(() => {
+          draggedItem.classList.add("dragging");
+        }, 0);
+      }
+    });
+
+    this.todosList.addEventListener("dragend", (e) => {
+      if (draggedItem) {
+        draggedItem.classList.remove("dragging");
+        draggedItem = null;
+      }
+    });
+
+    this.todosList.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const afterElement = this.getDragAfterElement(e.clientY);
+      const currentItem = document.querySelector(".dragging");
+      if (currentItem) {
+        if (afterElement == null) {
+          this.todosList.appendChild(currentItem);
+        } else {
+          this.todosList.insertBefore(currentItem, afterElement);
         }
       }
-    };
+    });
 
-    // Use event delegation
-    this.todosList.addEventListener("change", this.handleTodoToggle);
-    this.todosList.addEventListener("click", this.handleTodoDelete);
+    this.todosList.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (!draggedItem) return;
+
+      const newOrderIds = Array.from(
+        this.todosList.querySelectorAll(".todo-item")
+      ).map((item) => item.dataset.id);
+
+      this.projectData.todos.sort(
+        (a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id)
+      );
+
+      this.saveProjectData();
+      // Re-render to fix counters
+      this.renderTodos();
+    });
+  }
+
+  getDragAfterElement(y) {
+    const draggableElements = [
+      ...this.todosList.querySelectorAll(".todo-item:not(.dragging)"),
+    ];
+
+    return draggableElements.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      },
+      { offset: Number.NEGATIVE_INFINITY }
+    ).element;
   }
 
   // AI Function handling
