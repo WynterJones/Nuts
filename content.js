@@ -195,34 +195,44 @@ window.addEventListener("message", (event) => {
       if (assistantIframe) {
         const { deltaX, deltaY } = event.data;
 
-        // Get current position
-        const currentStyle = window.getComputedStyle(assistantIframe);
-        const currentLeft = parseInt(currentStyle.left) || 0;
-        const currentTop = parseInt(currentStyle.top) || 0;
+        // Get current position using computed style
+        const style = window.getComputedStyle(assistantIframe);
+        let currentLeft = parseInt(style.left);
+        let currentTop = parseInt(style.top);
+
+        // Handle case where left is not set (using right positioning)
+        if (isNaN(currentLeft)) {
+          const currentRight = parseInt(style.right) || 20;
+          currentLeft =
+            window.innerWidth - assistantIframe.offsetWidth - currentRight;
+          // Convert to left-based positioning
+          assistantIframe.style.left = currentLeft + "px";
+          assistantIframe.style.right = "auto";
+        }
+
+        // Top should always be set, but handle edge case
+        if (isNaN(currentTop)) {
+          currentTop = 100; // Default fallback
+        }
 
         // Calculate new position
-        const newX = Math.max(
-          0,
-          Math.min(
-            window.innerWidth - assistantIframe.offsetWidth,
-            currentLeft + deltaX
-          )
-        );
-        const newY = Math.max(
-          0,
-          Math.min(
-            window.innerHeight - assistantIframe.offsetHeight,
-            currentTop + deltaY
-          )
-        );
+        const newX = currentLeft + deltaX;
+        const newY = currentTop + deltaY;
 
-        // Apply new position
-        assistantIframe.style.left = newX + "px";
-        assistantIframe.style.top = newY + "px";
+        // Apply bounds checking
+        const maxX = window.innerWidth - assistantIframe.offsetWidth;
+        const maxY = window.innerHeight - assistantIframe.offsetHeight;
+
+        const boundedX = Math.max(0, Math.min(maxX, newX));
+        const boundedY = Math.max(0, Math.min(maxY, newY));
+
+        // Use simple left/top positioning
+        assistantIframe.style.left = boundedX + "px";
+        assistantIframe.style.top = boundedY + "px";
         assistantIframe.style.right = "auto";
         assistantIframe.style.bottom = "auto";
 
-        console.log("Iframe moved to:", { x: newX, y: newY, deltaX, deltaY });
+        console.log(`📱 Iframe moved to: ${boundedX}, ${boundedY}`);
       }
       break;
   }
@@ -517,7 +527,7 @@ async function executeTaskInBolt(data) {
   console.log("Found the .absolute button, clicking it");
   submitButton.click();
 
-  // Wait for THE SPECIFIC BUTTON to disappear - this is the key indicator
+  // Wait for THE SPECIFIC BUTTON to disappear - once gone, task is complete!
   console.log("Waiting for the .absolute button to disappear...");
   await waitForCondition(() => {
     const specificButton = document.querySelector(
@@ -531,38 +541,10 @@ async function executeTaskInBolt(data) {
   }, 15000); // 15 second timeout for button to disappear
 
   console.log(
-    "✅ The .absolute button disappeared - bolt.new is processing the task"
+    "✅ The .absolute button disappeared - task processing complete!"
   );
 
-  // Update status
-  if (assistantIframe) {
-    assistantIframe.contentWindow.postMessage(
-      {
-        type: "AUTOMATION_STATUS_UPDATE",
-        status: "Bolt.new is processing task... please wait",
-      },
-      "*"
-    );
-  }
-
-  // Wait for THE SPECIFIC BUTTON to reappear (indicating processing is complete)
-  console.log("Waiting for the .absolute button to reappear...");
-  await waitForCondition(() => {
-    const specificButton = document.querySelector(
-      ".bg-bolt-elements-prompt-background button.absolute"
-    );
-    const isBackAndEnabled = specificButton && !specificButton.disabled;
-    if (!isBackAndEnabled) {
-      console.log("Button not ready yet, continuing to wait...");
-    }
-    return isBackAndEnabled;
-  }, 180000); // 3 minute timeout for processing to complete
-
-  console.log(
-    "✅ The .absolute button reappeared and is enabled - task processing complete!"
-  );
-
-  // Notify automation manager that processing completed
+  // Update status - processing is complete once button disappears
   if (assistantIframe) {
     assistantIframe.contentWindow.postMessage(
       {

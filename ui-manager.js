@@ -73,31 +73,31 @@ class UIManager {
     }
 
     let isDragging = false;
-    let lastX = 0;
-    let lastY = 0;
+    let startX = 0;
+    let startY = 0;
 
     header.addEventListener("mousedown", (e) => {
       // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
       isDragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      startX = e.clientX;
+      startY = e.clientY;
 
-      document.body.classList.add("dragging");
+      document.body.style.userSelect = "none"; // Prevent text selection during drag
       e.preventDefault();
 
-      console.log("Dragging started at:", { x: lastX, y: lastY });
+      console.log("✋ Dragging started");
     });
 
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
-      const deltaX = e.clientX - lastX;
-      const deltaY = e.clientY - lastY;
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
 
-      // Only send message if there's actual movement
-      if (deltaX !== 0 || deltaY !== 0) {
+      // Only send message if there's meaningful movement (reduces message spam)
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
         window.parent.postMessage(
           {
             type: "MOVE_IFRAME",
@@ -107,23 +107,27 @@ class UIManager {
           "*"
         );
 
-        // Update last position
-        lastX = e.clientX;
-        lastY = e.clientY;
+        // Reset start position to current position for next delta calculation
+        startX = e.clientX;
+        startY = e.clientY;
       }
     });
 
     document.addEventListener("mouseup", () => {
       if (isDragging) {
         isDragging = false;
-        document.body.classList.remove("dragging");
-        console.log("Dragging ended");
+        document.body.style.userSelect = ""; // Re-enable text selection
+        console.log("✋ Dragging ended");
       }
     });
 
-    // Prevent text selection globally during drag
-    document.addEventListener("selectstart", (e) => {
-      if (isDragging) e.preventDefault();
+    // Handle mouse leave to end drag
+    document.addEventListener("mouseleave", () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.style.userSelect = "";
+        console.log("✋ Dragging ended (mouse left window)");
+      }
     });
   }
 
