@@ -65,11 +65,44 @@ class ProjectManager {
     try {
       const allData = await StorageManager.getAll();
       this.allProjects = {};
+      const seenTitles = new Map(); // Track title -> projectId mapping
 
       Object.keys(allData).forEach((key) => {
         if (key.startsWith("project_")) {
           const projectId = key.replace("project_", "");
-          this.allProjects[projectId] = allData[key];
+          const projectData = allData[key];
+          const title = projectData.title || projectId;
+          const titleLower = title.toLowerCase();
+
+          // Check for duplicates by title
+          if (seenTitles.has(titleLower)) {
+            const existingProjectId = seenTitles.get(titleLower);
+            const existingProject = this.allProjects[existingProjectId];
+
+            // Keep the more recent project (based on lastUpdated)
+            const existingDate = new Date(
+              existingProject.lastUpdated || existingProject.createdAt
+            );
+            const currentDate = new Date(
+              projectData.lastUpdated || projectData.createdAt
+            );
+
+            if (currentDate > existingDate) {
+              console.log(
+                `Replacing older duplicate project: ${existingProjectId} with ${projectId}`
+              );
+              delete this.allProjects[existingProjectId];
+              StorageManager.remove(`project_${existingProjectId}`); // Clean up storage
+              this.allProjects[projectId] = projectData;
+              seenTitles.set(titleLower, projectId);
+            } else {
+              console.log(`Removing older duplicate project: ${projectId}`);
+              StorageManager.remove(`project_${projectId}`); // Clean up storage
+            }
+          } else {
+            this.allProjects[projectId] = projectData;
+            seenTitles.set(titleLower, projectId);
+          }
         }
       });
 
@@ -91,7 +124,16 @@ class ProjectManager {
       return;
     }
 
-    const projectCards = projectKeys
+    // Sort projects by last updated date (newest first)
+    const sortedProjectKeys = projectKeys.sort((a, b) => {
+      const projectA = this.allProjects[a];
+      const projectB = this.allProjects[b];
+      const dateA = new Date(projectA.lastUpdated || projectA.createdAt);
+      const dateB = new Date(projectB.lastUpdated || projectB.createdAt);
+      return dateB - dateA; // Newest first
+    });
+
+    const projectCards = sortedProjectKeys
       .map((projectId) => {
         const project = this.allProjects[projectId];
         const todoCount = project.todos?.length || 0;
@@ -102,19 +144,9 @@ class ProjectManager {
           project.lastUpdated || project.createdAt
         );
         const title = project.title || projectId;
-        const techStack = project.techStack || ["React", "Vite"];
-
-        const techBadges = techStack
-          .map(
-            (tech) =>
-              `<span class="tech-badge-${tech.toLowerCase()}">${tech}</span>`
-          )
-          .join("");
-
         return `
         <div class="project-card" data-project-id="${projectId}">
           <h4>${CoreUtils.escapeHtml(title)}</h4>
-          <div class="project-tech">${techBadges}</div>
           <div class="project-meta">Last updated: ${lastUpdated}</div>
           <div class="project-stats">
             <span>Tasks: ${completedTodos}/${todoCount}</span>
@@ -197,16 +229,6 @@ class ProjectManager {
           <div class="form-group">
             <label>Project Description / Braindump</label>
             <textarea id="newProjectDescription" rows="4" placeholder="Braindump your ideas here and they will be turned into a web app task list by Nuts AI. Describe features, user stories, technical requirements, or anything else about your project..."></textarea>
-          </div>
-          <div class="form-group">
-            <label>Tech Stack (Bolt Default)</label>
-            <div class="tech-stack-display">
-              <span class="tech-badge-react">React</span>
-              <span class="tech-badge-vite">Vite</span>
-              <span class="tech-badge-typescript">TypeScript</span>
-              <span class="tech-badge-tailwind">Tailwind</span>
-            </div>
-            <p class="tech-stack-note">Bolt projects use this standard stack</p>
           </div>
         </div>
         <div class="modal-footer">

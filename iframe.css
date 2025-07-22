@@ -1173,3 +1173,31 @@ body {
 .next-task-btn.hidden {
   display: none;
 }
+
+/* Custom Scrollbars for all elements */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
