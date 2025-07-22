@@ -4,6 +4,7 @@ class ProjectManager {
     this.currentProject = null;
     this.projectData = null;
     this.allProjects = {};
+    this.saveTimeout = null; // For debouncing saves
 
     this.initElements();
     this.setupEventListeners();
@@ -260,10 +261,12 @@ class ProjectManager {
       return;
     }
 
-    const projectId = title
+    // Create consistent project ID based on title and timestamp
+    const timestamp = Date.now();
+    const projectId = `${title
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "-")
-      .replace(/-+/g, "-");
+      .replace(/-+/g, "-")}-${timestamp}`;
 
     // Use standard Bolt tech stack
     const projectData = {
@@ -276,7 +279,12 @@ class ProjectManager {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("Creating project with data:", projectData);
+    console.log(
+      "Creating project with ID:",
+      projectId,
+      "and data:",
+      projectData
+    );
 
     // Generate initial tasks if description provided
     if (description) {
@@ -296,6 +304,7 @@ class ProjectManager {
       );
     }
 
+    // Set as current project BEFORE saving to prevent duplicates
     this.currentProject = projectId;
     this.projectData = projectData;
     this.allProjects[projectId] = projectData;
@@ -306,7 +315,7 @@ class ProjectManager {
     // Close modal
     window.uiManager.hideModal();
 
-    console.log("Project created, showing main view");
+    console.log("Project created successfully");
     eventBus.emit("project:created", projectData);
   }
 
@@ -491,19 +500,29 @@ class ProjectManager {
   saveProjectData() {
     if (!this.currentProject || !this.projectData) return;
 
-    this.projectData.lastUpdated = new Date().toISOString();
+    // Clear any existing save timeout
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
 
-    // Save to local storage via StorageManager
-    StorageManager.set(`project_${this.currentProject}`, this.projectData);
+    // Debounce saves to prevent duplicates during rapid AI function calls
+    this.saveTimeout = setTimeout(() => {
+      this.projectData.lastUpdated = new Date().toISOString();
 
-    // Also notify parent window
-    window.parent.postMessage(
-      {
-        type: "SAVE_PROJECT_DATA",
-        data: this.projectData,
-      },
-      "*"
-    );
+      // Save to local storage via StorageManager
+      StorageManager.set(`project_${this.currentProject}`, this.projectData);
+
+      // Also notify parent window
+      window.parent.postMessage(
+        {
+          type: "SAVE_PROJECT_DATA",
+          data: this.projectData,
+        },
+        "*"
+      );
+
+      console.log(`Project ${this.currentProject} saved successfully`);
+    }, 100); // 100ms debounce
   }
 }
 

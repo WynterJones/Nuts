@@ -40,32 +40,21 @@ class BackgroundService {
         true // Enable function calling
       );
 
-      // If the AI created tasks, enhance the response to confirm what was created
+      // If the AI used functions, enhance the response to confirm what was done
       let responseContent = result.content;
       if (result.functionCalls && result.functionCalls.length > 0) {
-        const taskCalls = result.functionCalls.filter(
-          (call) => call.name === "add_task"
+        const functionSummary = this.generateFunctionCallSummary(
+          result.functionCalls
         );
-        if (taskCalls.length > 0) {
-          if (!responseContent || responseContent.trim().length < 50) {
-            // Generate a better response if the AI didn't provide one
-            const taskList = taskCalls
-              .map(
-                (call, index) =>
-                  `${index + 1}. ${call.arguments.task} ${
-                    call.arguments.priority === "high"
-                      ? "🔥"
-                      : call.arguments.priority === "low"
-                      ? "🟡"
-                      : "🟢"
-                  }`
-              )
-              .join("\n");
 
-            responseContent = `I've created ${taskCalls.length} task${
-              taskCalls.length > 1 ? "s" : ""
-            } for your project:\n\n${taskList}\n\nThese tasks are designed to help you build your web app systematically using the React+Vite+Supabase+Netlify stack. Let me know if you'd like me to break down any of these further or add additional tasks!`;
-          }
+        if (
+          functionSummary &&
+          (!responseContent || responseContent.trim().length < 50)
+        ) {
+          responseContent = functionSummary;
+        } else if (functionSummary) {
+          // Append function summary to existing response
+          responseContent = `${responseContent}\n\n${functionSummary}`;
         }
       }
 
@@ -415,6 +404,97 @@ Tech Stack: ${
     }
 
     return basePrompt;
+  }
+
+  generateFunctionCallSummary(functionCalls) {
+    const callsByType = {
+      add_task: [],
+      edit_task: [],
+      complete_task: [],
+      remove_task: [],
+    };
+
+    // Group function calls by type
+    functionCalls.forEach((call) => {
+      if (callsByType[call.name]) {
+        callsByType[call.name].push(call);
+      }
+    });
+
+    const summaryParts = [];
+
+    // Handle added tasks
+    if (callsByType.add_task.length > 0) {
+      const taskList = callsByType.add_task
+        .map(
+          (call, index) =>
+            `${index + 1}. ${call.arguments.task} ${
+              call.arguments.priority === "high"
+                ? "🔥"
+                : call.arguments.priority === "low"
+                ? "🟡"
+                : "🟢"
+            }`
+        )
+        .join("\n");
+
+      summaryParts.push(
+        `✅ **Added ${callsByType.add_task.length} task${
+          callsByType.add_task.length > 1 ? "s" : ""
+        }:**\n${taskList}`
+      );
+    }
+
+    // Handle completed tasks
+    if (callsByType.complete_task.length > 0) {
+      const completedTasks = callsByType.complete_task
+        .map((call) => `• ${call.arguments.task_id}`)
+        .join("\n");
+
+      summaryParts.push(
+        `✅ **Completed ${callsByType.complete_task.length} task${
+          callsByType.complete_task.length > 1 ? "s" : ""
+        }:**\n${completedTasks}`
+      );
+    }
+
+    // Handle edited tasks
+    if (callsByType.edit_task.length > 0) {
+      const editedTasks = callsByType.edit_task
+        .map(
+          (call) =>
+            `• "${call.arguments.task_id}" → "${call.arguments.new_text}"`
+        )
+        .join("\n");
+
+      summaryParts.push(
+        `✏️ **Edited ${callsByType.edit_task.length} task${
+          callsByType.edit_task.length > 1 ? "s" : ""
+        }:**\n${editedTasks}`
+      );
+    }
+
+    // Handle removed tasks
+    if (callsByType.remove_task.length > 0) {
+      const removedTasks = callsByType.remove_task
+        .map((call) => `• ${call.arguments.task_id}`)
+        .join("\n");
+
+      summaryParts.push(
+        `🗑️ **Removed ${callsByType.remove_task.length} task${
+          callsByType.remove_task.length > 1 ? "s" : ""
+        }:**\n${removedTasks}`
+      );
+    }
+
+    if (summaryParts.length > 0) {
+      return (
+        summaryParts.join("\n\n") +
+        "\n\nI've updated your task list accordingly. Let me know if you need any adjustments or have questions about these changes!"
+      );
+    }
+
+    return null;
   }
 
   generateId() {
