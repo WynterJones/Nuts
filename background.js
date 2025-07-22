@@ -191,14 +191,26 @@ ${
         // Save the generated starter prompt to settings if one was generated
         if (generatedStarterPrompt) {
           try {
+            // Save to global app settings for future projects
             const currentSettings = await chrome.storage.local.get(
               "app_settings"
             );
             const settings = currentSettings.app_settings || {};
             settings.starterPrompt = generatedStarterPrompt;
             await chrome.storage.local.set({ app_settings: settings });
+
+            // Also add to the project's specific settings
+            if (!updatedProjectData.settings) {
+              updatedProjectData.settings = {
+                starterPrompt: "",
+                appendPrompt: "",
+                waitTime: 180000,
+              };
+            }
+            updatedProjectData.settings.starterPrompt = generatedStarterPrompt;
+
             console.log(
-              "Generated starter prompt saved:",
+              "Generated starter prompt saved to both global and project settings:",
               generatedStarterPrompt
             );
           } catch (error) {

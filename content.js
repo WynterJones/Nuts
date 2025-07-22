@@ -263,6 +263,7 @@ async function handleTaskGeneration(data) {
       type: "GENERATE_TASKS",
       projectData: data.projectData,
       description: data.description,
+      useSupabase: data.useSupabase,
     });
 
     console.log("Task generation response:", response);
