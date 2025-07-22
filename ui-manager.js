@@ -157,7 +157,7 @@ class UIManager {
     this.backBtn.classList.remove("hidden");
     this.deleteProjectBtn.classList.remove("hidden");
 
-    this.switchTab("tasks"); // Default to tasks tab
+    this.switchTab("chat"); // Default to chat tab
     eventBus.emit("view:mainProject");
   }
 
