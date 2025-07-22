@@ -175,7 +175,7 @@ body {
 
 .projects-grid {
   flex: 1;
-  padding: 0 24px 24px 24px;
+  padding: 10px 24px 24px 24px;
   overflow-y: auto;
 }
 

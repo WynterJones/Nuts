@@ -73,40 +73,20 @@ class UIManager {
     }
 
     let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let animationFrameId = null;
-    let pendingUpdate = false;
-
-    const sendMoveMessage = (deltaX, deltaY) => {
-      if (pendingUpdate) return;
-
-      pendingUpdate = true;
-      animationFrameId = requestAnimationFrame(() => {
-        window.parent.postMessage(
-          {
-            type: "MOVE_IFRAME",
-            deltaX: deltaX,
-            deltaY: deltaY,
-          },
-          "*"
-        );
-        pendingUpdate = false;
-      });
-    };
+    let offsetX = 0;
+    let offsetY = 0;
 
     header.addEventListener("mousedown", (e) => {
       // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
       isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
+
+      // Store initial mouse position
+      offsetX = e.clientX;
+      offsetY = e.clientY;
 
       document.body.style.userSelect = "none";
-      document.body.style.pointerEvents = "none";
-      header.style.pointerEvents = "auto";
-      header.classList.add("dragging"); // Visual feedback
       e.preventDefault();
 
       console.log("✋ Dragging started");
@@ -115,34 +95,29 @@ class UIManager {
     document.addEventListener("mousemove", (e) => {
       if (!isDragging) return;
 
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
+      // Calculate how much the mouse has moved
+      const deltaX = e.clientX - offsetX;
+      const deltaY = e.clientY - offsetY;
 
-      // Only send if there's meaningful movement and no pending update
-      if ((Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) && !pendingUpdate) {
-        sendMoveMessage(deltaX, deltaY);
+      // Update stored position
+      offsetX = e.clientX;
+      offsetY = e.clientY;
 
-        // Reset start position for next delta
-        startX = e.clientX;
-        startY = e.clientY;
-      }
+      // Send delta movement to parent
+      window.parent.postMessage(
+        {
+          type: "MOVE_IFRAME",
+          deltaX: deltaX,
+          deltaY: deltaY,
+        },
+        "*"
+      );
     });
 
     const endDrag = () => {
       if (isDragging) {
         isDragging = false;
         document.body.style.userSelect = "";
-        document.body.style.pointerEvents = "";
-        header.style.pointerEvents = "";
-        header.classList.remove("dragging"); // Remove visual feedback
-
-        // Cancel any pending animation frame
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
-          animationFrameId = null;
-        }
-        pendingUpdate = false;
-
         console.log("✋ Dragging ended");
       }
     };
