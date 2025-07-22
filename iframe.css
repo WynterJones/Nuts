@@ -525,6 +525,7 @@ body {
   flex: 1;
   font-size: 14px; /* Adjust font size */
   color: #ffffff;
+  padding-right: 15px;
 }
 
 .todo-item.completed .todo-text {
@@ -534,7 +535,8 @@ body {
 
 .todo-actions {
   display: flex;
-  gap: 8px;
+  gap: 2px;
+  align-items: center;
 }
 
 .drag-handle {
@@ -863,7 +865,7 @@ body {
 }
 
 .automation-status {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   min-height: 60px;

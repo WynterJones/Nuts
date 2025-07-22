@@ -5,6 +5,7 @@ class ProjectManager {
     this.projectData = null;
     this.allProjects = {};
     this.saveTimeout = null; // For debouncing saves
+    this.dragListenersAdded = false; // Track drag listeners
 
     this.initElements();
     this.setupEventListeners();
@@ -408,7 +409,11 @@ class ProjectManager {
       this.todosList.appendChild(todoItem);
     });
 
-    this.addDragAndDropListeners();
+    // Only add drag and drop listeners if not already added
+    if (!this.dragListenersAdded) {
+      this.addDragAndDropListeners();
+      this.dragListenersAdded = true;
+    }
 
     // Update empty state
     const emptyState = this.todosList.querySelector(".empty-state");
@@ -445,10 +450,18 @@ class ProjectManager {
 
     // Event listeners
     const checkbox = todoItem.querySelector(".todo-checkbox");
+    const checkboxContainer = todoItem.querySelector(
+      ".todo-checkbox-container"
+    );
     const deleteBtn = todoItem.querySelector(".delete-btn");
     const todoText = todoItem.querySelector(".todo-text");
 
-    checkbox.addEventListener("change", () => this.toggleTodo(task.id));
+    // Handle checkbox clicks on the container (since the input is hidden)
+    checkboxContainer.addEventListener("click", () => {
+      checkbox.checked = !checkbox.checked;
+      this.toggleTodo(task.id);
+    });
+
     deleteBtn.addEventListener("click", () => this.deleteTodo(task.id));
     todoText.addEventListener("click", () =>
       this.enterEditMode(todoText, task)
