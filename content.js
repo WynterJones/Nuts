@@ -336,11 +336,7 @@ async function handleStartingSequence(settings) {
 
     if (textarea) {
       console.log("Found start button, clicking...");
-      await typeText(
-        textarea,
-        "What kind of frameworks can you use?",
-        settings.slowType
-      );
+      await typeText(textarea, "", settings.slowType);
       textarea.focus();
       textarea.dispatchEvent(
         new KeyboardEvent("keydown", {

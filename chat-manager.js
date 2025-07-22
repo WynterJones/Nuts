@@ -139,17 +139,17 @@ class ChatManager {
           <div class="bg-nuts text-black rounded-xl px-4 py-3 rounded-br-md">
             <p class="text-sm font-medium">${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-500 mt-1 text-right">${time}</div>
+          <div class="text-xs text-gray-600 mt-1 text-right opacity-60">${time}</div>
         </div>
       `;
     } else if (message.role === "ai") {
       messageEl.className += " justify-start";
       messageContent = `
         <div class="max-w-[85%]">
-          <div class="bg-gray-950 text-white border border-gray-800 rounded-xl px-4 py-3 rounded-bl-md">
-            <p class="text-sm">${formattedContent}</p>
+          <div class="bg-gray-900 text-white border border-gray-700 rounded-xl px-4 py-3 rounded-bl-md shadow-lg">
+            <p class="text-sm leading-relaxed">${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-500 mt-1">${time}</div>
+          <div class="text-xs text-gray-600 mt-1 opacity-60">${time}</div>
         </div>
       `;
     } else if (message.role === "system") {
@@ -159,7 +159,7 @@ class ChatManager {
           <div class="bg-gray-800 text-white border border-gray-600 rounded-xl px-4 py-3 text-center">
             <p class="text-sm">${formattedContent}</p>
           </div>
-          <div class="text-xs text-gray-500 mt-1 text-center">${time}</div>
+          <div class="text-xs text-gray-600 mt-1 text-center opacity-60">${time}</div>
         </div>
       `;
     }
@@ -202,11 +202,20 @@ class ChatManager {
       this.chatMessages.appendChild(defaultSystemMessage);
     }
 
-    // Render chat history
+    // Render chat history, but filter out the initial project description message
     if (projectData?.chatHistory) {
-      projectData.chatHistory.forEach((message) => {
-        this.renderMessage(message);
-      });
+      projectData.chatHistory
+        .filter((message) => {
+          // Hide the initial project description message that's meant for AI context only
+          return !(
+            message.role === "user" &&
+            message.content.includes("New project:") &&
+            message.content.includes("Description:")
+          );
+        })
+        .forEach((message) => {
+          this.renderMessage(message);
+        });
     }
 
     this.scrollToBottom();
