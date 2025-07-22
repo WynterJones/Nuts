@@ -88,29 +88,54 @@ class BackgroundService {
         return;
       }
 
-      const prompt = `Based on this project description, create a comprehensive task list for building a complete web application using the React+Vite+Supabase+Netlify tech stack.
+      const useSupabase = message.useSupabase !== false; // Default to true if not specified
+      const techStack = useSupabase
+        ? "React, Vite, TypeScript, Tailwind CSS, Supabase, Netlify"
+        : "React, Vite, TypeScript, Tailwind CSS, Netlify";
+
+      const databaseSection = useSupabase
+        ? "   - **Database & Backend** (Supabase setup, tables, auth, policies)\n   - **Authentication & User Management**\n"
+        : "   - **Data Management** (Local state, localStorage, or static data as needed)\n";
+
+      const integrationSection = useSupabase
+        ? "   - **Integration & API** (Supabase functions if needed)\n"
+        : "";
+
+      const prompt = `Based on this project description, create a comprehensive task list for building a complete web application${
+        useSupabase
+          ? " with database and authentication capabilities"
+          : " as a client-side application"
+      }.
 
 **PROJECT DETAILS:**
 Title: ${message.projectData.title}
 Description: ${message.description}
-Tech Stack: React, Vite, TypeScript, Tailwind CSS, Supabase, Netlify
+Tech Stack: ${techStack}
+Database/Auth: ${
+        useSupabase
+          ? "Yes - Using Supabase for database and authentication"
+          : "No - Client-side only application"
+      }
 
 **INSTRUCTIONS:**
 1. Create 8-15 specific, actionable tasks that cover the full development lifecycle:
-   - **Database & Backend** (Supabase setup, tables, auth, policies)
    - **Frontend Structure** (React components, pages, routing)
-   - **Authentication & User Management**
-   - **Core Features** (based on the description)
+${databaseSection}   - **Core Features** (based on the description)
    - **Styling & UI/UX** (Tailwind implementation)
-   - **Integration & API** (Supabase functions if needed)
-   - **Testing & Quality** (validation, error handling)
+${integrationSection}   - **Testing & Quality** (validation, error handling)
    - **Deployment & Production** (Netlify deployment, environment setup)
 
 2. Generate a starter prompt that will be used when initializing this project in Bolt.new. The starter prompt should:
    - Be specific to this project type and requirements
-   - Include the tech stack (React, Vite, TypeScript, Tailwind, Supabase)
+   - Include the tech stack (${techStack})
    - Mention key features from the description
    - Be concise but informative (2-3 sentences max)
+
+${
+  useSupabase
+    ? "IMPORTANT: Include Supabase database setup, table creation, authentication setup, and Row Level Security policies as needed."
+    : "IMPORTANT: This is a client-side only application. Do NOT create tasks for database setup, user authentication, or backend services. Focus on frontend-only features using local state management."
+}
 
 Make each task specific and actionable. Use priority levels:
 - **high**: Critical path items, dependencies for other tasks

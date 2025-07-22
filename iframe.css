@@ -568,16 +568,27 @@ body {
   background: #1a1a1a;
 }
 
-.todo-edit-input {
+.todo-edit-textarea {
   flex: 1;
   background: transparent;
-  border: none;
+  border: 1px solid #333333;
+  border-radius: 4px;
   color: #ffffff;
   font-size: 14px;
   font-family: inherit;
-  padding: 0;
+  padding: 8px;
   margin: 0;
   outline: none;
+  resize: none;
+  min-height: 40px;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+.todo-edit-textarea:focus {
+  border-color: #00d4aa;
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
 }
 
 .delete-btn {
@@ -1129,6 +1140,76 @@ body {
   margin-top: -23px;
 }
 
+/* Automation Messages */
+.automation-message {
+  margin: 16px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+}
+
+.automation-message.warning {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.automation-message .message-content {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.automation-message .message-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #00d4aa;
+}
+
+.automation-message.warning .message-icon {
+  color: #ffc107;
+}
+
+.automation-message .message-text {
+  flex: 1;
+}
+
+.automation-message h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.automation-message p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #cccccc;
+  line-height: 1.5;
+}
+
+.automation-message ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #aaaaaa;
+}
+
+.automation-message li {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+.automation-message strong {
+  color: #00d4aa;
+  font-weight: 600;
+}
+
+.automation-message.warning strong {
+  color: #ffc107;
+}
+
 .run-automation-btn {
   display: flex;
   align-items: center;
@@ -1157,7 +1238,8 @@ body {
   transform: translateY(0);
 }
 
-.run-automation-btn:disabled {
+.run-automation-btn:disabled,
+.run-automation-btn.disabled {
   background: #333333;
   color: #666666;
   cursor: not-allowed;
@@ -1253,6 +1335,7 @@ body {
 
 .form-group {
   margin-bottom: 20px;
+  position: relative;
 }
 
 .form-group label {
@@ -1285,6 +1368,88 @@ body {
 
 .form-group textarea {
   resize: vertical;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  width: 100%;
+}
+
+.checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-label .checkmark {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: #1a1a1a;
+  border: 2px solid #333333;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  top: 56px;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: #00d4aa;
+  border-color: #00d4aa;
+}
+
+.checkbox-label .checkmark:after {
+  content: "";
+  display: none;
+  width: 6px;
+  height: 10px;
+  border: solid #000000;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark:after {
+  display: block;
+}
+
+.checkbox-label:hover .checkmark {
+  border-color: #00d4aa;
+  background: rgba(0, 212, 170, 0.1);
+}
+
+.checkbox-title {
+  font-weight: 500;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.checkbox-description {
+  font-size: 12px;
+  color: #666666;
+  margin: 0;
+  margin-top: 4px;
+  padding-left: 32px;
+  line-height: 1.4;
 }
 
 .tech-stack-display {

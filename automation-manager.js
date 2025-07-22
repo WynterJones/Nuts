@@ -13,6 +13,7 @@ class AutomationManager {
     this.initElements();
     this.setupEventListeners();
     this.loadSettings();
+    this.checkUrlAndUpdateUI();
   }
 
   initElements() {
@@ -55,6 +56,13 @@ class AutomationManager {
     // Listen for project changes
     eventBus.on("project:loaded", (projectData) => {
       this.tasks = projectData.todos || [];
+    });
+
+    // Listen for tab changes to update UI based on URL
+    eventBus.on("tab:changed", (tab) => {
+      if (tab === "automation") {
+        this.checkUrlAndUpdateUI();
+      }
     });
 
     // Listen for responses from content script
@@ -156,6 +164,155 @@ class AutomationManager {
 
       window.addEventListener("message", handleUrlResponse);
     });
+  }
+
+  async checkUrlAndUpdateUI() {
+    try {
+      const currentUrl = await this.getCurrentUrl();
+      console.log("Checking URL for automation UI:", currentUrl);
+
+      const isRootDomain =
+        currentUrl === "https://bolt.new" || currentUrl === "https://bolt.new/";
+
+      const isProjectUrl = currentUrl.includes("bolt.new/~/");
+
+      if (isRootDomain) {
+        this.showStartingPromptMessage();
+      } else if (isProjectUrl) {
+        this.showNormalAutomationUI();
+      } else {
+        this.showUnsupportedUrlMessage();
+      }
+    } catch (error) {
+      console.error("Error checking URL:", error);
+      this.showNormalAutomationUI(); // Fallback to normal UI
+    }
+  }
+
+  showStartingPromptMessage() {
+    if (!this.runAutomationBtn) return;
+
+    this.runAutomationBtn.disabled = true;
+    this.runAutomationBtn.classList.add("disabled");
+
+    // Hide automation settings since they're not relevant for starting sequence
+    const settingsGroup = document.querySelector(".setting-group");
+    if (settingsGroup) {
+      settingsGroup.style.display = "none";
+    }
+
+    // Add message if it doesn't exist
+    let messageDiv = document.getElementById("startingPromptMessage");
+    if (!messageDiv) {
+      messageDiv = document.createElement("div");
+      messageDiv.id = "startingPromptMessage";
+      messageDiv.className = "automation-message";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="message-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 8v8"></path>
+              <path d="m8 12 4 4 4-4"></path>
+            </svg>
+          </div>
+          <div class="message-text">
+            <h4>Ready to Start a New Project?</h4>
+            <p>When starting a new project, paste in the <strong>Starting Prompt</strong> from Settings and then open Nuts to run automation.</p>
+            <ol>
+              <li>Copy the Starting Prompt from the Settings tab</li>
+              <li>Paste it into Bolt's chat input</li>
+              <li>Wait for the project to be created</li>
+              <li>Come back here to run task automation</li>
+            </ol>
+          </div>
+        </div>
+      `;
+
+      // Insert before the controls
+      const controlsDiv = document.querySelector(".automation-controls");
+      if (controlsDiv) {
+        controlsDiv.parentNode.insertBefore(messageDiv, controlsDiv);
+      }
+    }
+
+    messageDiv.style.display = "block";
+    this.hideUnsupportedMessage();
+  }
+
+  showNormalAutomationUI() {
+    if (!this.runAutomationBtn) return;
+
+    this.runAutomationBtn.disabled = false;
+    this.runAutomationBtn.classList.remove("disabled");
+
+    // Show automation settings since they're relevant for task automation
+    const settingsGroup = document.querySelector(".setting-group");
+    if (settingsGroup) {
+      settingsGroup.style.display = "flex";
+    }
+
+    this.hideStartingPromptMessage();
+    this.hideUnsupportedMessage();
+  }
+
+  showUnsupportedUrlMessage() {
+    if (!this.runAutomationBtn) return;
+
+    this.runAutomationBtn.disabled = true;
+    this.runAutomationBtn.classList.add("disabled");
+
+    // Hide automation settings since they're not relevant for unsupported URLs
+    const settingsGroup = document.querySelector(".setting-group");
+    if (settingsGroup) {
+      settingsGroup.style.display = "none";
+    }
+
+    // Add message if it doesn't exist
+    let messageDiv = document.getElementById("unsupportedUrlMessage");
+    if (!messageDiv) {
+      messageDiv = document.createElement("div");
+      messageDiv.id = "unsupportedUrlMessage";
+      messageDiv.className = "automation-message warning";
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <div class="message-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <triangle points="12,2 2,20 22,20"></triangle>
+              <path d="M12 8v8"></path>
+              <circle cx="12" cy="20" r="1"></circle>
+            </svg>
+          </div>
+          <div class="message-text">
+            <h4>Unsupported URL</h4>
+            <p>Automation only works on Bolt.new pages. Navigate to <strong>bolt.new</strong> to start a new project or open an existing project.</p>
+          </div>
+        </div>
+      `;
+
+      // Insert before the controls
+      const controlsDiv = document.querySelector(".automation-controls");
+      if (controlsDiv) {
+        controlsDiv.parentNode.insertBefore(messageDiv, controlsDiv);
+      }
+    }
+
+    messageDiv.style.display = "block";
+    this.hideStartingPromptMessage();
+  }
+
+  hideStartingPromptMessage() {
+    const messageDiv = document.getElementById("startingPromptMessage");
+    if (messageDiv) {
+      messageDiv.style.display = "none";
+    }
+  }
+
+  hideUnsupportedMessage() {
+    const messageDiv = document.getElementById("unsupportedUrlMessage");
+    if (messageDiv) {
+      messageDiv.style.display = "none";
+    }
   }
 
   async runStartingSequence() {
@@ -549,6 +706,11 @@ class AutomationManager {
     this.initElements();
     this.setupEventListeners();
     this.loadSettings();
+
+    // Check URL and update UI state
+    setTimeout(() => {
+      this.checkUrlAndUpdateUI();
+    }, 100);
   }
 }
 
