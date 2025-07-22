@@ -49,6 +49,11 @@ body {
   background: #111111;
 }
 
+.header.dragging {
+  cursor: grabbing !important;
+  background: #111111;
+}
+
 .header-left {
   display: flex;
   align-items: center;

@@ -195,44 +195,45 @@ window.addEventListener("message", (event) => {
       if (assistantIframe) {
         const { deltaX, deltaY } = event.data;
 
-        // Get current position using computed style
-        const style = window.getComputedStyle(assistantIframe);
-        let currentLeft = parseInt(style.left);
-        let currentTop = parseInt(style.top);
+        // Use transform for smoother movement (GPU accelerated)
+        const currentTransform = assistantIframe.style.transform;
+        let currentX = 0;
+        let currentY = 0;
 
-        // Handle case where left is not set (using right positioning)
-        if (isNaN(currentLeft)) {
-          const currentRight = parseInt(style.right) || 20;
-          currentLeft =
-            window.innerWidth - assistantIframe.offsetWidth - currentRight;
-          // Convert to left-based positioning
-          assistantIframe.style.left = currentLeft + "px";
+        if (currentTransform && currentTransform.includes("translate")) {
+          const match = currentTransform.match(
+            /translate\(([^,]+),\s*([^)]+)\)/
+          );
+          if (match) {
+            currentX = parseFloat(match[1]) || 0;
+            currentY = parseFloat(match[2]) || 0;
+          }
+        } else {
+          // First time - get current position from CSS and convert to transform
+          const rect = assistantIframe.getBoundingClientRect();
+          currentX = rect.left;
+          currentY = rect.top;
+
+          // Clear CSS positioning
+          assistantIframe.style.left = "auto";
+          assistantIframe.style.top = "auto";
           assistantIframe.style.right = "auto";
-        }
-
-        // Top should always be set, but handle edge case
-        if (isNaN(currentTop)) {
-          currentTop = 100; // Default fallback
+          assistantIframe.style.bottom = "auto";
         }
 
         // Calculate new position
-        const newX = currentLeft + deltaX;
-        const newY = currentTop + deltaY;
+        const newX = currentX + deltaX;
+        const newY = currentY + deltaY;
 
-        // Apply bounds checking
+        // Light bounds checking (allow some overflow for smooth dragging)
         const maxX = window.innerWidth - assistantIframe.offsetWidth;
         const maxY = window.innerHeight - assistantIframe.offsetHeight;
 
-        const boundedX = Math.max(0, Math.min(maxX, newX));
-        const boundedY = Math.max(0, Math.min(maxY, newY));
+        const boundedX = Math.max(-100, Math.min(maxX + 100, newX));
+        const boundedY = Math.max(-50, Math.min(maxY + 50, newY));
 
-        // Use simple left/top positioning
-        assistantIframe.style.left = boundedX + "px";
-        assistantIframe.style.top = boundedY + "px";
-        assistantIframe.style.right = "auto";
-        assistantIframe.style.bottom = "auto";
-
-        console.log(`📱 Iframe moved to: ${boundedX}, ${boundedY}`);
+        // Apply transform for smooth GPU-accelerated movement
+        assistantIframe.style.transform = `translate(${boundedX}px, ${boundedY}px)`;
       }
       break;
   }

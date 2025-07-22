@@ -75,6 +75,25 @@ class UIManager {
     let isDragging = false;
     let startX = 0;
     let startY = 0;
+    let animationFrameId = null;
+    let pendingUpdate = false;
+
+    const sendMoveMessage = (deltaX, deltaY) => {
+      if (pendingUpdate) return;
+
+      pendingUpdate = true;
+      animationFrameId = requestAnimationFrame(() => {
+        window.parent.postMessage(
+          {
+            type: "MOVE_IFRAME",
+            deltaX: deltaX,
+            deltaY: deltaY,
+          },
+          "*"
+        );
+        pendingUpdate = false;
+      });
+    };
 
     header.addEventListener("mousedown", (e) => {
       // Don't drag if clicking on buttons
@@ -84,7 +103,10 @@ class UIManager {
       startX = e.clientX;
       startY = e.clientY;
 
-      document.body.style.userSelect = "none"; // Prevent text selection during drag
+      document.body.style.userSelect = "none";
+      document.body.style.pointerEvents = "none";
+      header.style.pointerEvents = "auto";
+      header.classList.add("dragging"); // Visual feedback
       e.preventDefault();
 
       console.log("✋ Dragging started");
@@ -96,39 +118,37 @@ class UIManager {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
 
-      // Only send message if there's meaningful movement (reduces message spam)
-      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
-        window.parent.postMessage(
-          {
-            type: "MOVE_IFRAME",
-            deltaX: deltaX,
-            deltaY: deltaY,
-          },
-          "*"
-        );
+      // Only send if there's meaningful movement and no pending update
+      if ((Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) && !pendingUpdate) {
+        sendMoveMessage(deltaX, deltaY);
 
-        // Reset start position to current position for next delta calculation
+        // Reset start position for next delta
         startX = e.clientX;
         startY = e.clientY;
       }
     });
 
-    document.addEventListener("mouseup", () => {
-      if (isDragging) {
-        isDragging = false;
-        document.body.style.userSelect = ""; // Re-enable text selection
-        console.log("✋ Dragging ended");
-      }
-    });
-
-    // Handle mouse leave to end drag
-    document.addEventListener("mouseleave", () => {
+    const endDrag = () => {
       if (isDragging) {
         isDragging = false;
         document.body.style.userSelect = "";
-        console.log("✋ Dragging ended (mouse left window)");
+        document.body.style.pointerEvents = "";
+        header.style.pointerEvents = "";
+        header.classList.remove("dragging"); // Remove visual feedback
+
+        // Cancel any pending animation frame
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        pendingUpdate = false;
+
+        console.log("✋ Dragging ended");
       }
-    });
+    };
+
+    document.addEventListener("mouseup", endDrag);
+    document.addEventListener("mouseleave", endDrag);
   }
 
   switchTab(tabName) {

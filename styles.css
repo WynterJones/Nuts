@@ -21,6 +21,10 @@
   background: white;
 
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Optimized for smooth dragging */
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 @keyframes slideIn {
