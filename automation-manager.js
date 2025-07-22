@@ -63,6 +63,8 @@ class AutomationManager {
         this.handleStepComplete(event.data);
       } else if (event.data.type === "AUTOMATION_ERROR") {
         this.handleAutomationError(event.data);
+      } else if (event.data.type === "AUTOMATION_STATUS_UPDATE") {
+        this.updateStatus(event.data.status);
       }
     });
   }
@@ -176,16 +178,30 @@ class AutomationManager {
       return;
     }
 
-    console.log(`Found ${incompleteTasks.length} incomplete tasks`);
+    console.log(`Total tasks: ${this.tasks.length}`);
+    console.log(
+      `Found ${incompleteTasks.length} incomplete tasks:`,
+      incompleteTasks.map((t) => t.text)
+    );
 
-    // Start with first task
-    await this.executeTask(incompleteTasks[0], 0, incompleteTasks.length);
+    // Start with first incomplete task
+    const firstTask = incompleteTasks[0];
+    const firstTaskIndex = this.tasks.findIndex((t) => t.id === firstTask.id);
+    console.log(
+      `Starting with task: "${firstTask.text}" (index ${firstTaskIndex} in original array)`
+    );
+
+    await this.executeTask(firstTask, firstTaskIndex, this.tasks.length);
   }
 
   async executeTask(task, index, total) {
     if (!this.isRunning) return;
 
     this.currentTaskIndex = index;
+
+    // Show running automation UI
+    this.showRunningAutomationUI(task, index, total);
+
     this.updateStatus(
       `Running task ${index + 1}/${total}: ${task.text.substring(0, 50)}...`
     );
@@ -211,23 +227,53 @@ class AutomationManager {
     console.log("Step completed:", data);
 
     if (data.taskIndex !== undefined) {
-      // Task execution completed
-      const incompleteTasks = this.tasks.filter((task) => !task.completed);
-      const nextIndex = data.taskIndex + 1;
+      // Mark the current task as completed if we have task data
+      if (data.task && data.task.id) {
+        const task = this.tasks.find((t) => t.id === data.task.id);
+        if (task) {
+          task.completed = true;
+          console.log(`Marked task ${task.id} as completed:`, task.text);
+        }
+      }
 
-      if (nextIndex < incompleteTasks.length && this.settings.autoContinue) {
-        // Continue to next task
-        setTimeout(() => {
-          this.executeTask(
-            incompleteTasks[nextIndex],
-            nextIndex,
-            incompleteTasks.length
-          );
-        }, 2000); // Wait 2 seconds between tasks
+      // Get fresh list of incomplete tasks
+      const incompleteTasks = this.tasks.filter((task) => !task.completed);
+      console.log(
+        `${incompleteTasks.length} tasks remaining:`,
+        incompleteTasks.map((t) => t.text)
+      );
+
+      if (incompleteTasks.length > 0) {
+        // Find the next task to execute
+        const nextTask = incompleteTasks[0]; // Always take the first incomplete task
+        const nextTaskIndex = this.tasks.findIndex((t) => t.id === nextTask.id); // Find its index in the original array
+
+        console.log(
+          `Next task: "${nextTask.text}" (index ${nextTaskIndex} in original array)`
+        );
+
+        if (this.settings.autoContinue) {
+          // Continue to next task with longer delay to ensure page stability
+          this.updateStatus("Waiting before next task...");
+          setTimeout(() => {
+            this.executeTask(
+              nextTask,
+              nextTaskIndex,
+              this.tasks.length // Use original task count, not incomplete count
+            );
+          }, 5000); // Wait 5 seconds between tasks for page to fully stabilize
+        } else {
+          // Auto-continue is disabled, wait for user to click next
+          this.currentTaskIndex = nextTaskIndex;
+          this.updateStatus("Task completed. Click 'Next Task' to continue.");
+          this.showNextTaskButton(nextTask, nextTaskIndex, this.tasks.length);
+        }
       } else {
         // All tasks completed
         this.updateStatus("All tasks completed!");
-        setTimeout(() => this.stopAutomation(), 2000);
+        setTimeout(() => {
+          this.stopAutomation();
+        }, 2000);
       }
     } else if (data.sequenceType === "starting") {
       // Starting sequence completed
@@ -247,10 +293,8 @@ class AutomationManager {
     this.isRunning = false;
     this.currentTaskIndex = 0;
 
-    // Update UI
-    this.runAutomationBtn.classList.remove("hidden");
-    this.stopAutomationBtn.classList.add("hidden");
-    this.automationProgress.classList.add("hidden");
+    // Restore original automation tab
+    this.restoreAutomationTab();
 
     // Notify content script to stop
     window.parent.postMessage(
@@ -264,7 +308,9 @@ class AutomationManager {
   }
 
   updateStatus(message) {
-    this.automationStatusText.textContent = message;
+    if (this.automationStatusText) {
+      this.automationStatusText.textContent = message;
+    }
     console.log("Automation status:", message);
   }
 
@@ -286,6 +332,177 @@ class AutomationManager {
       totalTasks: this.tasks.filter((task) => !task.completed).length,
       settings: this.settings,
     };
+  }
+
+  showRunningAutomationUI(currentTask, currentIndex, totalTasks) {
+    // Hide normal automation tab content and show running UI
+    const automationTab = document.getElementById("automationTab");
+    if (!automationTab) return;
+
+    // Calculate progress: how many tasks have been completed + 1 for current
+    const completedTasks = this.tasks.filter((t) => t.completed).length;
+    const taskProgress = completedTasks + 1; // +1 for the current task being executed
+
+    console.log(
+      `Showing running UI: Task ${taskProgress} of ${totalTasks} - "${currentTask.text}"`
+    );
+
+    automationTab.innerHTML = `
+      <div class="running-automation-container">
+        <div class="running-header">
+          <div class="loading-spinner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path fill="none" stroke="currentColor" stroke-dasharray="16" stroke-dashoffset="16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c4.97 0 9 4.03 9 9">
+                <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.2s" values="16;0"/>
+                <animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/>
+              </path>
+            </svg>
+          </div>
+          <div class="running-text">
+            <h3>Running Automation</h3>
+            <p>${taskProgress} of ${totalTasks} Tasks</p>
+          </div>
+        </div>
+        
+        <div class="current-task">
+          <h4>Current Task:</h4>
+          <p>${CoreUtils.escapeHtml(currentTask.text)}</p>
+        </div>
+
+        <div class="automation-status">
+          <p id="runningStatusText">${
+            this.automationStatusText?.textContent || "Starting task..."
+          }</p>
+        </div>
+
+        <div class="running-controls">
+          <button id="stopRunningBtn" class="stop-automation-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+            Stop
+          </button>
+          <button id="nextTaskBtn" class="next-task-btn hidden">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+            Next Task
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Setup event listeners
+    const stopBtn = document.getElementById("stopRunningBtn");
+    const nextBtn = document.getElementById("nextTaskBtn");
+
+    if (stopBtn) {
+      stopBtn.addEventListener("click", () => this.stopAutomation());
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => this.executeNextTask());
+    }
+
+    // Update the status text element reference
+    this.automationStatusText = document.getElementById("runningStatusText");
+  }
+
+  showNextTaskButton(nextTask, nextIndex, totalTasks) {
+    const nextBtn = document.getElementById("nextTaskBtn");
+    if (nextBtn) {
+      nextBtn.classList.remove("hidden");
+      nextBtn.onclick = () =>
+        this.executeNextTask(nextTask, nextIndex, totalTasks);
+    }
+  }
+
+  executeNextTask(task, index, total) {
+    // Hide next button and continue with task
+    const nextBtn = document.getElementById("nextTaskBtn");
+    if (nextBtn) {
+      nextBtn.classList.add("hidden");
+    }
+
+    if (task && index !== undefined && total) {
+      this.executeTask(task, index, total);
+    } else {
+      // Get the next incomplete task
+      const incompleteTasks = this.tasks.filter((t) => !t.completed);
+      if (incompleteTasks.length > 0) {
+        const nextTask = incompleteTasks[0];
+        const nextTaskIndex = this.tasks.findIndex((t) => t.id === nextTask.id);
+        this.executeTask(nextTask, nextTaskIndex, this.tasks.length);
+      } else {
+        this.updateStatus("No more tasks to execute");
+        this.stopAutomation();
+      }
+    }
+  }
+
+  restoreAutomationTab() {
+    // Restore the original automation tab content
+    const automationTab = document.getElementById("automationTab");
+    if (!automationTab) return;
+
+    automationTab.innerHTML = `
+      <div class="section-header">
+        <h4>Automation Settings</h4>
+      </div>
+      <div class="automation-settings">
+        <div class="setting-group">
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="autoSupabaseMigration" class="setting-toggle">
+              <span class="toggle-slider"></span>
+              <span class="setting-title">Auto Run Supabase Migration</span>
+            </label>
+            <p class="setting-description">Automatically run database migrations when detected</p>
+          </div>
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="autoErrorFix" class="setting-toggle">
+              <span class="toggle-slider"></span>
+              <span class="setting-title">Auto Run Error Fix</span>
+            </label>
+            <p class="setting-description">Automatically attempt to fix errors up to 3 times</p>
+          </div>
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="autoContinue" class="setting-toggle">
+              <span class="toggle-slider"></span>
+              <span class="setting-title">Auto Continue</span>
+            </label>
+            <p class="setting-description">Automatically continue to next task after completion</p>
+          </div>
+        </div>
+        <div class="automation-status">
+          <div id="automationProgress" class="progress-info hidden">
+            <div class="progress-spinner"></div>
+            <span id="automationStatusText">Ready</span>
+          </div>
+        </div>
+        <div class="automation-controls">
+          <button id="runAutomationBtn" class="run-automation-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5,3 19,12 5,21 5,3"></polygon>
+            </svg>
+            Run Automation
+          </button>
+          <button id="stopAutomationBtn" class="stop-automation-btn hidden">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="6" width="12" height="12"></rect>
+            </svg>
+            Stop
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Re-initialize elements and event listeners
+    this.initElements();
+    this.setupEventListeners();
+    this.loadSettings();
   }
 }
 

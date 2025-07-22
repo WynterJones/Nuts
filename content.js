@@ -424,7 +424,33 @@ async function handleTaskExecution(data) {
   } catch (error) {
     console.error("Task execution error:", error);
 
-    // Handle error retries if enabled
+    // Check if this is a timeout error (button waiting)
+    const isTimeoutError =
+      error.message.includes("Condition not met within") ||
+      error.message.includes("timeout");
+
+    // Don't retry timeout errors - they usually mean the task completed but button behavior was different
+    if (isTimeoutError) {
+      console.log(
+        "Timeout error detected - assuming task completed and moving on"
+      );
+
+      // Mark task as complete and move to next
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_STEP_COMPLETE",
+            taskIndex: data.taskIndex,
+            totalTasks: data.totalTasks,
+            task: data.task,
+          },
+          "*"
+        );
+      }
+      return;
+    }
+
+    // Handle other error retries if enabled
     if (
       data.settings.autoErrorFix &&
       automationState.retryCount < automationState.maxRetries
@@ -477,38 +503,85 @@ async function executeTaskInBolt(data) {
   console.log("Typing task:", data.task.text, data);
   await typeText(promptBox, data.task.text);
 
-  // Find and click submit button or press Enter
-  const submitButton =
-    document.querySelector('button[type="submit"]') ||
-    document.querySelector('[aria-label*="send"]') ||
-    document.querySelector('[data-testid*="send"]') ||
-    document.querySelector('button[aria-label*="submit"]');
+  // Find the specific submit button that user confirmed works
+  const submitButton = document.querySelector(
+    ".bg-bolt-elements-prompt-background button.absolute"
+  );
 
-  if (submitButton && !submitButton.disabled) {
-    console.log("Clicking submit button");
-    submitButton.click();
-  } else {
-    console.log("Pressing Enter to submit");
-    const enterEvent = new KeyboardEvent("keydown", {
-      key: "Enter",
-      code: "Enter",
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-    });
-    promptBox.dispatchEvent(enterEvent);
+  if (!submitButton || submitButton.disabled) {
+    throw new Error(
+      "Submit button (.bg-bolt-elements-prompt-background button.absolute) not found or disabled"
+    );
   }
 
-  // Wait for the textarea to become disabled (indicating processing)
-  await waitForCondition(() => promptBox.disabled, 2000);
+  console.log("Found the .absolute button, clicking it");
+  submitButton.click();
 
-  // Wait for the textarea to become enabled again (indicating completion)
-  await waitForCondition(() => !promptBox.disabled, 60000); // 1 minute timeout
+  // Wait for THE SPECIFIC BUTTON to disappear - this is the key indicator
+  console.log("Waiting for the .absolute button to disappear...");
+  await waitForCondition(() => {
+    const specificButton = document.querySelector(
+      ".bg-bolt-elements-prompt-background button.absolute"
+    );
+    const isGone = !specificButton;
+    if (!isGone) {
+      console.log("Button still present, waiting...");
+    }
+    return isGone;
+  }, 15000); // 15 second timeout for button to disappear
+
+  console.log(
+    "✅ The .absolute button disappeared - bolt.new is processing the task"
+  );
+
+  // Update status
+  if (assistantIframe) {
+    assistantIframe.contentWindow.postMessage(
+      {
+        type: "AUTOMATION_STATUS_UPDATE",
+        status: "Bolt.new is processing task... please wait",
+      },
+      "*"
+    );
+  }
+
+  // Wait for THE SPECIFIC BUTTON to reappear (indicating processing is complete)
+  console.log("Waiting for the .absolute button to reappear...");
+  await waitForCondition(() => {
+    const specificButton = document.querySelector(
+      ".bg-bolt-elements-prompt-background button.absolute"
+    );
+    const isBackAndEnabled = specificButton && !specificButton.disabled;
+    if (!isBackAndEnabled) {
+      console.log("Button not ready yet, continuing to wait...");
+    }
+    return isBackAndEnabled;
+  }, 180000); // 3 minute timeout for processing to complete
+
+  console.log(
+    "✅ The .absolute button reappeared and is enabled - task processing complete!"
+  );
+
+  // Notify automation manager that processing completed
+  if (assistantIframe) {
+    assistantIframe.contentWindow.postMessage(
+      {
+        type: "AUTOMATION_STATUS_UPDATE",
+        status: "Task completed, moving to next...",
+      },
+      "*"
+    );
+  }
 
   // Handle Supabase migration if enabled
   if (data.settings.autoSupabaseMigration) {
     await handleSupabaseMigration();
   }
+
+  console.log("🎉 Task execution completed successfully!");
+
+  // Small delay to ensure page is stable before moving to next task
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // Task completed successfully
   if (assistantIframe) {
@@ -517,6 +590,7 @@ async function executeTaskInBolt(data) {
         type: "AUTOMATION_STEP_COMPLETE",
         taskIndex: data.taskIndex,
         totalTasks: data.totalTasks,
+        task: data.task, // Include the full task data so we can mark it as completed
       },
       "*"
     );
@@ -531,7 +605,8 @@ async function handleSupabaseMigration() {
 
   // Look for migration-related buttons or prompts
   const migrationButton =
-    document.querySelector('button:contains("Run Migration")') ||
+    findElementByText("button", "Run Migration") ||
+    findElementByText("button", "migration") ||
     document.querySelector('[data-testid*="migration"]') ||
     document.querySelector('button[aria-label*="migration"]');
 

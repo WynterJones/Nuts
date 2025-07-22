@@ -387,11 +387,11 @@ class ProjectManager {
         (todo) => `
       <div class="todo-item ${todo.completed ? "completed" : ""}">
         <input type="checkbox" ${todo.completed ? "checked" : ""} 
-               onchange="window.projectManager.toggleTodo('${todo.id}')"
+               data-todo-id="${todo.id}"
                class="todo-checkbox">
         <span class="todo-text">${CoreUtils.escapeHtml(todo.text)}</span>
         <div class="todo-actions">
-          <button onclick="window.projectManager.deleteTodo('${todo.id}')" 
+          <button data-todo-id="${todo.id}" 
                   class="delete-btn" title="Delete task">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -405,6 +405,47 @@ class ProjectManager {
       .join("");
 
     this.todosList.innerHTML = todoItems;
+
+    // Add event listeners using event delegation
+    this.setupTodoEventListeners();
+  }
+
+  setupTodoEventListeners() {
+    // Remove existing listeners to prevent duplicates
+    if (this.handleTodoToggle) {
+      this.todosList.removeEventListener("change", this.handleTodoToggle);
+    }
+    if (this.handleTodoDelete) {
+      this.todosList.removeEventListener("click", this.handleTodoDelete);
+    }
+
+    // Add event listeners for checkboxes (toggle)
+    this.handleTodoToggle = (e) => {
+      if (e.target.classList.contains("todo-checkbox")) {
+        const todoId = e.target.getAttribute("data-todo-id");
+        if (todoId) {
+          console.log("Toggling todo:", todoId);
+          this.toggleTodo(todoId);
+        }
+      }
+    };
+
+    // Add event listeners for delete buttons
+    this.handleTodoDelete = (e) => {
+      if (e.target.closest(".delete-btn")) {
+        const todoId = e.target
+          .closest(".delete-btn")
+          .getAttribute("data-todo-id");
+        if (todoId) {
+          console.log("Deleting todo:", todoId);
+          this.deleteTodo(todoId);
+        }
+      }
+    };
+
+    // Use event delegation
+    this.todosList.addEventListener("change", this.handleTodoToggle);
+    this.todosList.addEventListener("click", this.handleTodoDelete);
   }
 
   // AI Function handling
