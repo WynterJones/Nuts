@@ -1298,3 +1298,17 @@ body {
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Automation UI States */
+.automation-running .header,
+.automation-running .tab-navigation {
+  display: none !important;
+}
+
+.automation-running .assistant-container {
+  padding-top: 0;
+}
+
+.automation-running .tab-content {
+  padding-top: 0;
+}
