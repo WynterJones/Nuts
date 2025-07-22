@@ -8,7 +8,6 @@ class AutomationManager {
       autoSupabaseMigration: false,
       autoErrorFix: false,
       autoContinue: true,
-      slowType: true, // Default to human-like typing
     };
 
     this.initElements();
@@ -22,7 +21,6 @@ class AutomationManager {
     );
     this.autoErrorFixToggle = document.getElementById("autoErrorFix");
     this.autoContinueToggle = document.getElementById("autoContinue");
-    this.slowTypeToggle = document.getElementById("slowType");
     this.runAutomationBtn = document.getElementById("runAutomationBtn");
     this.stopAutomationBtn = document.getElementById("stopAutomationBtn");
     this.automationProgress = document.getElementById("automationProgress");
@@ -43,11 +41,6 @@ class AutomationManager {
 
     this.autoContinueToggle.addEventListener("change", (e) => {
       this.settings.autoContinue = e.target.checked;
-      this.saveSettings();
-    });
-
-    this.slowTypeToggle.addEventListener("change", (e) => {
-      this.settings.slowType = e.target.checked;
       this.saveSettings();
     });
 
@@ -102,7 +95,6 @@ class AutomationManager {
       this.settings.autoSupabaseMigration;
     this.autoErrorFixToggle.checked = this.settings.autoErrorFix;
     this.autoContinueToggle.checked = this.settings.autoContinue;
-    this.slowTypeToggle.checked = this.settings.slowType;
   }
 
   async startAutomation() {
@@ -132,11 +124,13 @@ class AutomationManager {
       ) {
         // Run starting sequence
         await this.runStartingSequence();
-      } else if (currentUrl.startsWith("https://bolt.new/")) {
-        // Run task sequence
+      } else if (currentUrl.includes("bolt.new/~/")) {
+        // Run task sequence - only on project URLs with ~/
         await this.runTaskSequence();
       } else {
-        throw new Error("Automation can only run on bolt.new pages");
+        throw new Error(
+          "Automation can only run on bolt.new project URLs (bolt.new/~/.*)"
+        );
       }
     } catch (error) {
       console.error("Automation error:", error);
@@ -186,29 +180,36 @@ class AutomationManager {
   async runTaskSequence() {
     this.updateStatus("Starting task sequence...");
 
-    // Filter to only incomplete tasks
-    const incompleteTasks = this.tasks.filter((task) => !task.completed);
-
-    if (incompleteTasks.length === 0) {
-      this.updateStatus("No incomplete tasks found");
+    if (this.tasks.length === 0) {
+      this.updateStatus("No tasks found");
       this.stopAutomation();
       return;
     }
+
+    // Find the first incomplete task in the original order
+    const firstIncompleteIndex = this.tasks.findIndex(
+      (task) => !task.completed
+    );
+
+    if (firstIncompleteIndex === -1) {
+      this.updateStatus("All tasks completed");
+      this.stopAutomation();
+      return;
+    }
+
+    const firstTask = this.tasks[firstIncompleteIndex];
+    const incompleteTasks = this.tasks.filter((task) => !task.completed);
 
     console.log(`Total tasks: ${this.tasks.length}`);
     console.log(
       `Found ${incompleteTasks.length} incomplete tasks:`,
       incompleteTasks.map((t) => t.text)
     );
-
-    // Start with first incomplete task
-    const firstTask = incompleteTasks[0];
-    const firstTaskIndex = this.tasks.findIndex((t) => t.id === firstTask.id);
     console.log(
-      `Starting with task: "${firstTask.text}" (index ${firstTaskIndex} in original array)`
+      `Starting with task: "${firstTask.text}" (index ${firstIncompleteIndex} in original order)`
     );
 
-    await this.executeTask(firstTask, firstTaskIndex, this.tasks.length);
+    await this.executeTask(firstTask, firstIncompleteIndex, this.tasks.length);
   }
 
   async executeTask(task, index, total) {
@@ -261,41 +262,58 @@ class AutomationManager {
         const task = this.tasks.find((t) => t.id === data.task.id);
         if (task) {
           task.completed = true;
+          task.completedAt = new Date().toISOString();
           console.log(`Marked task ${task.id} as completed:`, task.text);
+
+          // Update the ProjectManager's task list so UI updates
+          if (window.projectManager && window.projectManager.projectData) {
+            const projectTask = window.projectManager.projectData.todos.find(
+              (t) => t.id === task.id
+            );
+            if (projectTask) {
+              projectTask.completed = true;
+              projectTask.completedAt = new Date().toISOString();
+              window.projectManager.saveProjectData();
+              window.projectManager.renderTodos();
+              console.log("Updated task in project manager UI");
+            }
+          }
         }
       }
 
-      // Get fresh list of incomplete tasks
+      // Find the next incomplete task in the original order
+      const nextIncompleteIndex = this.tasks.findIndex(
+        (task, index) => index > data.taskIndex && !task.completed
+      );
+
       const incompleteTasks = this.tasks.filter((task) => !task.completed);
       console.log(
         `${incompleteTasks.length} tasks remaining:`,
         incompleteTasks.map((t) => t.text)
       );
 
-      if (incompleteTasks.length > 0) {
-        // Find the next task to execute
-        const nextTask = incompleteTasks[0]; // Always take the first incomplete task
-        const nextTaskIndex = this.tasks.findIndex((t) => t.id === nextTask.id); // Find its index in the original array
+      if (nextIncompleteIndex !== -1) {
+        const nextTask = this.tasks[nextIncompleteIndex];
 
         console.log(
-          `Next task: "${nextTask.text}" (index ${nextTaskIndex} in original array)`
+          `Next task: "${nextTask.text}" (index ${nextIncompleteIndex} in original order)`
         );
 
         if (this.settings.autoContinue) {
           // Continue to next task with longer delay to ensure page stability
           this.updateStatus("Waiting before next task...");
           setTimeout(() => {
-            this.executeTask(
-              nextTask,
-              nextTaskIndex,
-              this.tasks.length // Use original task count, not incomplete count
-            );
+            this.executeTask(nextTask, nextIncompleteIndex, this.tasks.length);
           }, 5000); // Wait 5 seconds between tasks for page to fully stabilize
         } else {
           // Auto-continue is disabled, wait for user to click next
-          this.currentTaskIndex = nextTaskIndex;
+          this.currentTaskIndex = nextIncompleteIndex;
           this.updateStatus("Task completed. Click 'Next Task' to continue.");
-          this.showNextTaskButton(nextTask, nextTaskIndex, this.tasks.length);
+          this.showNextTaskButton(
+            nextTask,
+            nextIncompleteIndex,
+            this.tasks.length
+          );
         }
       } else {
         // All tasks completed
@@ -457,12 +475,14 @@ class AutomationManager {
     if (task && index !== undefined && total) {
       this.executeTask(task, index, total);
     } else {
-      // Get the next incomplete task
-      const incompleteTasks = this.tasks.filter((t) => !t.completed);
-      if (incompleteTasks.length > 0) {
-        const nextTask = incompleteTasks[0];
-        const nextTaskIndex = this.tasks.findIndex((t) => t.id === nextTask.id);
-        this.executeTask(nextTask, nextTaskIndex, this.tasks.length);
+      // Find the next incomplete task in the original order
+      const nextIncompleteIndex = this.tasks.findIndex(
+        (task, index) => index > this.currentTaskIndex && !task.completed
+      );
+
+      if (nextIncompleteIndex !== -1) {
+        const nextTask = this.tasks[nextIncompleteIndex];
+        this.executeTask(nextTask, nextIncompleteIndex, this.tasks.length);
       } else {
         this.updateStatus("No more tasks to execute");
         this.stopAutomation();
@@ -502,14 +522,6 @@ class AutomationManager {
               <span class="setting-title">Auto Continue</span>
             </label>
             <p class="setting-description">Automatically continue to next task after completion</p>
-          </div>
-          <div class="setting-item">
-            <label class="toggle-label">
-              <input type="checkbox" id="slowType" class="setting-toggle">
-              <span class="toggle-slider"></span>
-              <span class="setting-title">Slow Type</span>
-            </label>
-            <p class="setting-description">Type like a human with realistic delays (vs instant typing)</p>
           </div>
         </div>
         <div class="automation-status">

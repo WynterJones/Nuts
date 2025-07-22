@@ -440,6 +440,7 @@ class ProjectManager {
       text,
       completed: false,
       createdAt: new Date().toISOString(),
+      sortOrder: this.projectData.todos.length, // Add sort order for new tasks
     };
 
     this.projectData.todos.push(todo);
@@ -474,9 +475,17 @@ class ProjectManager {
       return;
     }
 
+    // Ensure all tasks have a sortOrder (for backwards compatibility)
+    this.projectData.todos.forEach((task, index) => {
+      if (task.sortOrder === undefined) {
+        task.sortOrder = index;
+      }
+    });
+
+    // Sort by completion status first (incomplete first), then by sortOrder
     const sortedTodos = [...this.projectData.todos].sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      return (a.sortOrder || 0) - (b.sortOrder || 0);
     });
 
     this.todosList.innerHTML = ""; // Clear existing todos
@@ -628,11 +637,32 @@ class ProjectManager {
         this.todosList.querySelectorAll(".todo-item")
       ).map((item) => item.dataset.id);
 
-      this.projectData.todos.sort(
-        (a, b) => newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id)
+      // Update sortOrder based on new positions
+      // Only update incomplete tasks to maintain their relative order
+      const incompleteTasks = this.projectData.todos.filter(
+        (t) => !t.completed
       );
+      const incompleteIds = newOrderIds.filter((id) => {
+        const task = this.projectData.todos.find((t) => t.id === id);
+        return task && !task.completed;
+      });
+
+      // Update sortOrder for incomplete tasks based on their new position
+      incompleteIds.forEach((id, index) => {
+        const task = this.projectData.todos.find((t) => t.id === id);
+        if (task) {
+          task.sortOrder = index;
+        }
+      });
+
+      // Ensure completed tasks maintain their relative order but come after incomplete ones
+      const completedTasks = this.projectData.todos.filter((t) => t.completed);
+      completedTasks.forEach((task, index) => {
+        task.sortOrder = incompleteIds.length + index;
+      });
 
       this.saveProjectData();
+      console.log("Task order updated and saved");
       // Re-render to fix counters
       this.renderTodos();
     });
@@ -688,6 +718,7 @@ class ProjectManager {
       priority,
       createdAt: new Date().toISOString(),
       createdBy: "ai",
+      sortOrder: this.projectData.todos.length, // Add sort order for AI tasks
     };
     this.projectData.todos.push(todo);
   }

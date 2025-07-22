@@ -339,7 +339,7 @@ async function handleStartingSequence(settings) {
       const starterPrompt =
         settings.starterPrompt ||
         "Build me a basic web app for react, vite, supabase app.";
-      await typeText(textarea, starterPrompt, settings.slowType);
+      await typeText(textarea, starterPrompt);
       textarea.focus();
       textarea.dispatchEvent(
         new KeyboardEvent("keydown", {
@@ -490,9 +490,9 @@ async function executeTaskInBolt(data) {
   promptBox.value = "";
   promptBox.focus();
 
-  // Type the task (simulate natural typing)
+  // Type the task (instant typing)
   console.log("Typing task:", data.task.text, data);
-  await typeText(promptBox, data.task.text, data.settings.slowType);
+  await typeText(promptBox, data.task.text);
 
   // Find the specific submit button that user confirmed works
   const submitButton = document.querySelector(
@@ -618,7 +618,7 @@ async function waitForCondition(condition, timeout = 5000) {
   });
 }
 
-async function typeText(element, text, slowType = true) {
+async function typeText(element, text, slowType = false) {
   return new Promise((resolve) => {
     if (!slowType) {
       // Instant typing - set value directly
