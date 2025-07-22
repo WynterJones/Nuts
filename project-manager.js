@@ -135,6 +135,21 @@ class ProjectManager {
 
           // Only skip if the project data is invalid
           if (projectData && typeof projectData === "object") {
+            // Migrate projects without settings
+            if (!projectData.settings) {
+              projectData.settings = {
+                starterPrompt:
+                  "Build me a basic web app for react, vite, supabase app.",
+                appendPrompt: "",
+                waitTime: 180000,
+              };
+              // Save the migrated project
+              StorageManager.set(`project_${projectId}`, projectData);
+              console.log(
+                `Migrated project ${projectId} to include default settings`
+              );
+            }
+
             this.allProjects[projectId] = projectData;
             console.log(
               `Loaded project: ${projectId} - ${
@@ -380,6 +395,11 @@ class ProjectManager {
       chatHistory: [],
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
+      settings: {
+        starterPrompt: "",
+        appendPrompt: "",
+        waitTime: 180000,
+      },
     };
 
     console.log(
@@ -388,6 +408,12 @@ class ProjectManager {
       "and data:",
       projectData
     );
+
+    // Check if project already exists to prevent duplicates
+    if (this.allProjects[projectId]) {
+      console.warn("Project already exists, skipping creation:", projectId);
+      return;
+    }
 
     // Set as current project first
     this.currentProject = projectId;
@@ -422,21 +448,20 @@ class ProjectManager {
 
   showProcessingState() {
     const createBtn = document.getElementById("createProjectBtn");
+    const cancelBtn = document.querySelector(".cancel-btn");
     const modalBody = document.querySelector(".modal-body");
+    const modalFooter = document.querySelector(".modal-footer");
     const formGroups = document.querySelectorAll(".form-group");
-
-    if (createBtn) {
-      createBtn.disabled = true;
-      createBtn.innerHTML = `
-        <div class="processing-spinner"></div>
-        Creating Project...
-      `;
-    }
 
     // Hide form inputs while processing
     formGroups.forEach((group) => {
       group.style.display = "none";
     });
+
+    // Hide modal footer (buttons)
+    if (modalFooter) {
+      modalFooter.style.display = "none";
+    }
 
     // Add processing message
     if (modalBody) {
@@ -457,11 +482,17 @@ class ProjectManager {
   hideProcessingState() {
     const createBtn = document.getElementById("createProjectBtn");
     const processingMessage = document.getElementById("processingMessage");
+    const modalFooter = document.querySelector(".modal-footer");
     const formGroups = document.querySelectorAll(".form-group");
 
     if (createBtn) {
       createBtn.disabled = false;
       createBtn.innerHTML = "Create Project";
+    }
+
+    // Restore modal footer (buttons)
+    if (modalFooter) {
+      modalFooter.style.display = "flex";
     }
 
     // Restore form inputs

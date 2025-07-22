@@ -95,7 +95,7 @@ class BackgroundService {
 
       const databaseSection = useSupabase
         ? "   - **Database & Backend** (Supabase setup, tables, auth, policies)\n   - **Authentication & User Management**\n"
-        : "   - **Data Management** (Local state, localStorage, or static data as needed)\n";
+        : "   - **Frontend Data Management** (React state, localStorage only - NO database or backend)\n";
 
       const integrationSection = useSupabase
         ? "   - **Integration & API** (Supabase Edge Functions for server-side logic, API integrations)\n"
@@ -113,8 +113,8 @@ Description: ${message.description}
 Tech Stack: ${techStack}
 Database/Auth: ${
         useSupabase
-          ? "Yes - Using Supabase for database and authentication"
-          : "No - Client-side only application"
+          ? "🟢 YES - Using Supabase for database and authentication"
+          : "🔴 NO - Frontend-only, NO database, NO authentication, NO backend"
       }
 
 **PLATFORM SPECIFICS:**
@@ -138,8 +138,8 @@ ${integrationSection}   - **Testing & Quality** (validation, error handling)
 
 ${
   useSupabase
-    ? "IMPORTANT: Include Supabase database setup, table creation, authentication setup, Row Level Security policies, and Supabase Edge Functions for server-side logic. Use Supabase for anything requiring API keys, environment variables, or server-side processing. Do NOT create manual Netlify deployment tasks as Bolt.new handles this automatically."
-    : "IMPORTANT: This is a client-side only application. Do NOT create tasks for database setup, user authentication, backend services, or manual deployment. Focus on frontend-only features using local state management. Bolt.new will handle Netlify deployment automatically."
+    ? "🔥 SUPABASE ENABLED: Include Supabase database setup, table creation, authentication setup, Row Level Security policies, and Supabase Edge Functions for server-side logic. Use Supabase for anything requiring API keys, environment variables, or server-side processing. Do NOT create manual Netlify deployment tasks as Bolt.new handles this automatically."
+    : "🚫 SUPABASE DISABLED - CLIENT-SIDE ONLY APPLICATION:\n\n❌ STRICTLY FORBIDDEN - DO NOT CREATE ANY OF THESE TASKS:\n- Database setup, tables, schemas, migrations\n- User authentication, login, signup, user management\n- Supabase configuration, API keys, environment variables\n- Backend services, APIs, server-side logic\n- Edge Functions, serverless functions\n- Data persistence beyond localStorage/sessionStorage\n- User sessions, JWT tokens, authentication flows\n- Any task mentioning 'Supabase', 'database', 'auth', 'backend', 'server'\n\n✅ ONLY CREATE THESE TYPES OF TASKS:\n- React components and pages\n- Frontend routing (React Router)\n- UI/UX with Tailwind CSS\n- Client-side state management (useState, useContext, Redux)\n- Local data storage (localStorage, sessionStorage)\n- Static content and assets\n- Frontend form handling and validation\n- CSS animations and styling\n- Component interactions and user experience\n\nThis is a FRONTEND-ONLY application with NO backend functionality whatsoever."
 }
 
 Make each task specific and actionable. Use priority levels:
@@ -147,7 +147,13 @@ Make each task specific and actionable. Use priority levels:
 - **normal**: Core feature development
 - **low**: Polish, optimization, nice-to-have features
 
-Use the add_task function for each task and generate_starter_prompt function for the starter prompt. Focus on creating a complete roadmap for a production-ready web application.`;
+Use the add_task function for each task and generate_starter_prompt function for the starter prompt. Focus on creating a complete roadmap for a production-ready web application.
+
+${
+  !useSupabase
+    ? "\n⚠️  FINAL REMINDER: User has DISABLED Supabase. This means ZERO database tasks, ZERO authentication tasks, ZERO backend tasks. If you create any Supabase/database/auth/backend tasks, you are doing it wrong. This is a pure frontend React application only."
+    : ""
+}`;
 
       const result = await this.callOpenAI(
         prompt,

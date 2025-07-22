@@ -19,6 +19,11 @@ class SettingsManager {
         this.renderSettings();
       }
     });
+
+    // Listen for project changes to load project-specific settings
+    eventBus.on("project:loaded", (projectData) => {
+      this.loadProjectSettings(projectData);
+    });
   }
 
   async init() {
@@ -47,13 +52,51 @@ class SettingsManager {
 
   async saveSettings() {
     try {
-      await StorageManager.set("app_settings", this.settings);
-      console.log("Settings saved:", this.settings);
+      // If we have a current project, save to project settings instead of global
+      if (
+        window.projectManager &&
+        window.projectManager.currentProject &&
+        window.projectManager.projectData
+      ) {
+        window.projectManager.projectData.settings = { ...this.settings };
+        window.projectManager.saveProjectData();
+        console.log("Project settings saved:", this.settings);
+      } else {
+        // Fallback to global settings if no project is active
+        await StorageManager.set("app_settings", this.settings);
+        console.log("Global settings saved:", this.settings);
+      }
       this.showSaveSuccess();
     } catch (error) {
       console.error("Error saving settings:", error);
       this.showSaveError();
     }
+  }
+
+  loadProjectSettings(projectData) {
+    if (projectData && projectData.settings) {
+      // Load project-specific settings
+      this.settings = {
+        ...this.settings,
+        ...projectData.settings,
+      };
+    } else {
+      // Use default settings if project doesn't have settings yet
+      this.settings = {
+        starterPrompt:
+          "Build me a basic web app for react, vite, supabase app.",
+        appendPrompt: "",
+        waitTime: 180000,
+      };
+
+      // Save default settings to the project
+      if (projectData && window.projectManager) {
+        projectData.settings = { ...this.settings };
+        window.projectManager.saveProjectData();
+      }
+    }
+    this.updateUI();
+    console.log("Loaded project settings:", this.settings);
   }
 
   updateUI() {
@@ -104,7 +147,15 @@ class SettingsManager {
 
   // Get current settings
   getSettings() {
-    return this.settings;
+    // Always return current project settings if available
+    if (
+      window.projectManager &&
+      window.projectManager.projectData &&
+      window.projectManager.projectData.settings
+    ) {
+      return { ...window.projectManager.projectData.settings };
+    }
+    return { ...this.settings };
   }
 
   // Get starter prompt for automation
