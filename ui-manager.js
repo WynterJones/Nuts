@@ -2,8 +2,6 @@
 class UIManager {
   constructor() {
     this.currentTab = "tasks";
-    this.isDragging = false;
-    this.dragOffset = { x: 0, y: 0 };
 
     this.initElements();
     this.setupEventListeners();
@@ -24,76 +22,108 @@ class UIManager {
 
   setupEventListeners() {
     // Tab switching
-    this.tabBtns.forEach((btn) => {
-      btn.addEventListener("click", () => this.switchTab(btn.dataset.tab));
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        this.switchTab(tab);
+      });
     });
 
     // Header buttons
-    this.backBtn.addEventListener("click", () => this.showProjectList());
-    this.closeBtn.addEventListener("click", () => this.closeAssistant());
-    this.clearBtn.addEventListener("click", () => this.clearCurrentTab());
-    this.deleteProjectBtn.addEventListener("click", () => this.deleteProject());
+    this.closeBtn.addEventListener("click", () => {
+      window.parent.postMessage({ type: "CLOSE_IFRAME" }, "*");
+    });
 
-    // Listen to events from other managers
-    eventBus.on("project:loaded", () => this.showMainView());
-    eventBus.on("project:created", () => this.showMainView());
+    this.backBtn.addEventListener("click", () => {
+      eventBus.emit("project:list");
+    });
+
+    this.deleteProjectBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to delete this project?")) {
+        eventBus.emit("project:delete");
+      }
+    });
+
+    this.clearBtn.addEventListener("click", () => {
+      const activeTab = document.querySelector(".tab-btn.active")?.dataset.tab;
+      if (activeTab && confirm(`Clear all ${activeTab} data?`)) {
+        eventBus.emit("clear:tab", activeTab);
+      }
+    });
+
+    // Event listeners
+    eventBus.on("project:loaded", (projectData) => {
+      this.updateProjectHeader(projectData);
+      this.showMainView();
+    });
+
+    eventBus.on("project:created", (projectData) => {
+      this.updateProjectHeader(projectData);
+      this.showMainView();
+    });
+
     eventBus.on("project:list", () => this.showProjectList());
   }
 
   setupDragging() {
-    const header = document.getElementById("draggableHeader");
-    let startX, startY, initialX, initialY;
+    const header = document.querySelector(".header");
+    if (!header) {
+      console.warn("Header element not found for dragging setup");
+      return;
+    }
+
+    let isDragging = false;
+    let lastX = 0;
+    let lastY = 0;
 
     header.addEventListener("mousedown", (e) => {
       // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
-      this.isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-
-      // Get the iframe's position from the parent window
-      initialX = 0;
-      initialY = 0;
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
 
       document.body.classList.add("dragging");
       e.preventDefault();
 
-      console.log("Drag started", { startX, startY });
+      console.log("Dragging started at:", { x: lastX, y: lastY });
     });
 
     document.addEventListener("mousemove", (e) => {
-      if (!this.isDragging) return;
+      if (!isDragging) return;
 
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
+      const deltaX = e.clientX - lastX;
+      const deltaY = e.clientY - lastY;
 
-      // Send drag message to parent window
-      window.parent.postMessage(
-        {
-          type: "MOVE_IFRAME",
-          data: {
+      // Only send message if there's actual movement
+      if (deltaX !== 0 || deltaY !== 0) {
+        window.parent.postMessage(
+          {
+            type: "MOVE_IFRAME",
             deltaX: deltaX,
             deltaY: deltaY,
           },
-        },
-        "*"
-      );
+          "*"
+        );
 
-      console.log("Dragging", { deltaX, deltaY });
-    });
-
-    document.addEventListener("mouseup", () => {
-      if (this.isDragging) {
-        this.isDragging = false;
-        document.body.classList.remove("dragging");
-        console.log("Drag ended");
+        // Update last position
+        lastX = e.clientX;
+        lastY = e.clientY;
       }
     });
 
-    // Prevent text selection during drag
-    header.addEventListener("selectstart", (e) => {
-      if (this.isDragging) e.preventDefault();
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.classList.remove("dragging");
+        console.log("Dragging ended");
+      }
+    });
+
+    // Prevent text selection globally during drag
+    document.addEventListener("selectstart", (e) => {
+      if (isDragging) e.preventDefault();
     });
   }
 

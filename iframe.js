@@ -1,64 +1,28 @@
-// Main iframe script - initializes and coordinates all managers
-class NutsForBolt {
+// Iframe main entry point
+class IframeApp {
   constructor() {
-    this.uiManager = null;
-    this.projectManager = null;
-    this.chatManager = null;
-
-    this.init();
+    this.initializeApp();
   }
 
-  init() {
-    // Wait for DOM to be ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => this.initialize());
-    } else {
-      this.initialize();
-    }
-  }
+  initializeApp() {
+    // Initialize all managers
+    window.uiManager = new UIManager();
+    window.projectManager = new ProjectManager();
+    window.chatManager = new ChatManager();
+    window.automationManager = new AutomationManager();
 
-  initialize() {
-    console.log("Nuts for Bolt initializing...");
+    // Load initial project list
+    window.projectManager.loadAllProjects();
 
-    // Initialize managers in order
-    this.uiManager = new UIManager();
-    this.projectManager = new ProjectManager();
-    this.chatManager = new ChatManager();
-
-    // Make managers globally available
-    window.uiManager = this.uiManager;
-    window.projectManager = this.projectManager;
-    window.chatManager = this.chatManager;
-
-    // Setup communication with parent window
-    this.setupParentCommunication();
-
-    // Start with project list view
-    setTimeout(() => {
-      this.projectManager.loadAllProjects();
-    }, 500);
-
-    console.log("Nuts for Bolt initialized successfully!");
-  }
-
-  setupParentCommunication() {
-    // Listen for messages from content script
-    window.addEventListener("message", (event) => {
-      const { type, project, data } = event.data;
-
-      switch (type) {
-        case "PROJECT_DATA":
-        case "PROJECT_CHANGED":
-          this.projectManager.loadProjectData(project, data);
-          this.uiManager.showMainView();
-          break;
-      }
-    });
+    console.log("Nuts for Bolt iframe initialized");
   }
 }
 
-// Initialize the application
-const app = new NutsForBolt();
-
-// Make app globally available for debugging
-window.nutsForBolt = app;
+// Initialize the app when DOM is loaded
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    new IframeApp();
+  });
+} else {
+  new IframeApp();
+}

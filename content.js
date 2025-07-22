@@ -13,11 +13,7 @@ function createButton() {
   button.setAttribute("data-state", "closed");
 
   button.innerHTML = `
-   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
-     <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12q0 .531.054 1.048C2.404 13.352 4.367 15 6 15c1.212 0 2.606-.908 3.387-1.5l.01-.009a3 3 0 1 1 4.61.739c.47.412 1.084.77 1.798.77c1.69 0 1.69-2 3.38-2c1.077 0 1.925.814 2.399 1.403l.092.132c.211-.81.324-1.659.324-2.535c0-5.523-4.477-10-10-10" opacity="0.5"/>
-     <path fill="currentColor" d="M9.388 13.5C8.607 14.092 7.212 15 6 15c-1.633 0-3.596-1.648-3.945-1.952C2.579 18.078 6.832 22 12 22c4.647 0 8.554-3.17 9.676-7.465l-.092-.132c-.473-.59-1.322-1.403-2.4-1.403c-1.689 0-1.689 2-3.378 2c-.714 0-1.328-.357-1.798-.77a3 3 0 0 1-4.61-.739zm10.14-8.083l-.058.053l-1 1a.75.75 0 1 0 1.06 1.06l.905-.904q-.409-.64-.907-1.209M5.417 4.472q.025.03.053.058l1 1a.75.75 0 0 0 1.06-1.06l-.904-.905q-.64.41-1.209.907m5.053.058a.75.75 0 1 1 1.06-1.06l1 1a.75.75 0 1 1-1.06 1.06zm6.13.92a.75.75 0 1 0-1.2-.9l-1.5 2a.75.75 0 0 0 1.2.9zM8.41 7.56a.75.75 0 0 0 .918.53l1.366-.366a.75.75 0 1 0-.388-1.448l-1.366.366a.75.75 0 0 0-.53.918m9.056 2.794a.75.75 0 1 1-1.499.07l-.066-1.412a.75.75 0 0 1 1.498-.07zm.971 1.705a.75.75 0 0 0 1.059.067l1.678-1.478a.75.75 0 1 0-.992-1.126L18.504 11a.75.75 0 0 0-.067 1.059M5.525 8.167a.75.75 0 1 1 1.365-.62l.585 1.286a.75.75 0 1 1-1.365.621z"/>
-     <path fill="currentColor" d="M6.943 10.895a.75.75 0 0 1 .162 1.048l-.835 1.141a.75.75 0 1 1-1.21-.886l.835-1.14a.75.75 0 0 1 1.048-.163M2.856 8.98a.75.75 0 0 1 1.497-.084l.079 1.412a.75.75 0 0 1-1.498.083z"/>
-   </svg>
+   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256"><g fill="currentColor"><path d="m219.84 73.16l-88-48.16a8 8 0 0 0-7.68 0l-88 48.18a8 8 0 0 0-4.16 7v95.64a8 8 0 0 0 4.16 7l88 48.18a8 8 0 0 0 7.68 0l88-48.18a8 8 0 0 0 4.16-7V80.18a8 8 0 0 0-4.16-7.02M128 168a40 40 0 1 1 40-40a40 40 0 0 1-40 40" opacity="0.2"/><path d="M128 80a48 48 0 1 0 48 48a48.06 48.06 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m95.68-93.85l-88-48.15a15.88 15.88 0 0 0-15.36 0l-88 48.17a16 16 0 0 0-8.32 14v95.64a16 16 0 0 0 8.32 14l88 48.17a15.88 15.88 0 0 0 15.36 0l88-48.17a16 16 0 0 0 8.32-14V80.18a16 16 0 0 0-8.32-14.03M128 224l-88-48.18V80.18L128 32l88 48.17v95.63Z"/></g></svg>
   `;
 
   button.addEventListener("click", () => {
@@ -150,8 +146,8 @@ async function saveProjectData(projectData) {
 window.addEventListener("message", (event) => {
   if (!assistantIframe) return;
 
-  const { type, data } = event.data;
-  console.log("Received message:", type, data);
+  const { type } = event.data;
+  console.log("Received message:", type, event.data);
 
   switch (type) {
     case "CLOSE_IFRAME":
@@ -159,40 +155,74 @@ window.addEventListener("message", (event) => {
       break;
 
     case "SAVE_PROJECT_DATA":
-      saveProjectData(data);
+      saveProjectData(event.data.data);
       break;
 
     case "SEND_MESSAGE":
-      handleChatMessage(data.message, data.context);
+      handleChatMessage(event.data.data.message, event.data.data.context);
       break;
 
     case "GENERATE_TASKS_FROM_DESCRIPTION":
-      handleTaskGeneration(data);
+      handleTaskGeneration(event.data.data);
+      break;
+
+    case "GET_CURRENT_URL":
+      // Send current URL back to iframe
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "CURRENT_URL_RESPONSE",
+            url: window.location.href,
+          },
+          "*"
+        );
+      }
+      break;
+
+    case "RUN_STARTING_SEQUENCE":
+      handleStartingSequence(event.data.settings);
+      break;
+
+    case "EXECUTE_TASK":
+      handleTaskExecution(event.data);
+      break;
+
+    case "STOP_AUTOMATION":
+      handleStopAutomation();
       break;
 
     case "MOVE_IFRAME":
       if (assistantIframe) {
-        const currentRect = assistantIframe.getBoundingClientRect();
+        const { deltaX, deltaY } = event.data;
+
+        // Get current position
+        const currentStyle = window.getComputedStyle(assistantIframe);
+        const currentLeft = parseInt(currentStyle.left) || 0;
+        const currentTop = parseInt(currentStyle.top) || 0;
+
+        // Calculate new position
         const newX = Math.max(
           0,
           Math.min(
-            window.innerWidth - currentRect.width,
-            currentRect.left + data.deltaX
+            window.innerWidth - assistantIframe.offsetWidth,
+            currentLeft + deltaX
           )
         );
         const newY = Math.max(
           0,
           Math.min(
-            window.innerHeight - currentRect.height,
-            currentRect.top + data.deltaY
+            window.innerHeight - assistantIframe.offsetHeight,
+            currentTop + deltaY
           )
         );
 
+        // Apply new position
         assistantIframe.style.left = newX + "px";
         assistantIframe.style.top = newY + "px";
         assistantIframe.style.right = "auto";
+        assistantIframe.style.bottom = "auto";
 
-        console.log("Iframe moved to:", { x: newX, y: newY });
+        console.log("Iframe moved to:", { x: newX, y: newY, deltaX, deltaY });
       }
       break;
   }
@@ -200,19 +230,23 @@ window.addEventListener("message", (event) => {
 
 async function handleChatMessage(message, context) {
   try {
+    console.log("Sending chat message:", message);
+
     const response = await chrome.runtime.sendMessage({
       type: "OPENAI_REQUEST",
       message: message,
       context: context,
     });
 
+    console.log("Received response:", response);
+
     if (assistantIframe) {
       assistantIframe.contentWindow.postMessage(
         {
           type: "OPENAI_RESPONSE",
-          response: response.content,
-          error: response.error,
-          functionCalls: response.functionCalls,
+          response: response?.content || null,
+          error: response?.error || null,
+          functionCalls: response?.functionCalls || [],
         },
         "*"
       );
@@ -225,7 +259,8 @@ async function handleChatMessage(message, context) {
         {
           type: "OPENAI_RESPONSE",
           response: null,
-          error: "Failed to send message",
+          error: error.message || "Failed to send message",
+          functionCalls: [],
         },
         "*"
       );
@@ -235,13 +270,17 @@ async function handleChatMessage(message, context) {
 
 async function handleTaskGeneration(data) {
   try {
+    console.log("Generating tasks for:", data.projectId);
+
     const response = await chrome.runtime.sendMessage({
       type: "GENERATE_TASKS",
       projectData: data.projectData,
       description: data.description,
     });
 
-    if (response.updatedProjectData) {
+    console.log("Task generation response:", response);
+
+    if (response?.updatedProjectData) {
       await saveProjectData(response.updatedProjectData);
 
       if (assistantIframe) {
@@ -254,10 +293,319 @@ async function handleTaskGeneration(data) {
           "*"
         );
       }
+    } else if (response?.error) {
+      console.error("Task generation failed:", response.error);
+
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "TASK_GENERATION_ERROR",
+            error: response.error,
+          },
+          "*"
+        );
+      }
     }
   } catch (error) {
     console.error("Error generating tasks:", error);
+
+    if (assistantIframe) {
+      assistantIframe.contentWindow.postMessage(
+        {
+          type: "TASK_GENERATION_ERROR",
+          error: error.message || "Failed to generate tasks",
+        },
+        "*"
+      );
+    }
   }
+}
+
+// Automation handling functions
+let automationState = {
+  isRunning: false,
+  currentTask: null,
+  retryCount: 0,
+  maxRetries: 3,
+};
+
+async function handleStartingSequence(settings) {
+  console.log("Executing starting sequence...");
+  automationState.isRunning = true;
+
+  try {
+    // Check if we're on bolt.new root
+    if (
+      window.location.href !== "https://bolt.new" &&
+      window.location.href !== "https://bolt.new/"
+    ) {
+      throw new Error("Starting sequence can only run on https://bolt.new");
+    }
+
+    // Look for new project button or similar starting action
+    const textarea = document.querySelector(
+      ".bg-bolt-elements-prompt-background textarea"
+    );
+
+    if (textarea) {
+      console.log("Found start button, clicking...");
+      textarea.value = "What kind of frameworks can you use?";
+      textarea.focus();
+      textarea.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Enter",
+          code: "Enter",
+          keyCode: 13,
+          which: 13,
+          bubbles: true,
+        })
+      );
+      // trigger change event
+      textarea.dispatchEvent(new Event("change", { bubbles: true }));
+
+      // delay for 1 second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // look for .bg-bolt-elements-prompt-background  button.absolute
+      const newProjectButton = document.querySelector(
+        ".bg-bolt-elements-prompt-background button.absolute"
+      );
+      console.log("New project button:", newProjectButton);
+      // cllick
+      if (newProjectButton) {
+        newProjectButton.click();
+      }
+      // Wait for navigation or modal
+      await waitForCondition(() => {
+        return (
+          window.location.href !== "https://bolt.new" ||
+          document.querySelector(".modal") ||
+          document.querySelector('[role="dialog"]')
+        );
+      }, 5000);
+
+      // Notify completion
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_STEP_COMPLETE",
+            sequenceType: "starting",
+          },
+          "*"
+        );
+      }
+    } else {
+      throw new Error("Could not find starting button on bolt.new");
+    }
+  } catch (error) {
+    console.error("Starting sequence error:", error);
+    if (assistantIframe) {
+      assistantIframe.contentWindow.postMessage(
+        {
+          type: "AUTOMATION_ERROR",
+          error: error.message,
+        },
+        "*"
+      );
+    }
+  }
+
+  automationState.isRunning = false;
+}
+
+async function handleTaskExecution(data) {
+  console.log("Executing task:", data.task.text);
+  automationState.isRunning = true;
+  automationState.currentTask = data.task;
+  automationState.retryCount = 0;
+
+  try {
+    await executeTaskInBolt(data);
+  } catch (error) {
+    console.error("Task execution error:", error);
+
+    // Handle error retries if enabled
+    if (
+      data.settings.autoErrorFix &&
+      automationState.retryCount < automationState.maxRetries
+    ) {
+      automationState.retryCount++;
+      console.log(
+        `Retrying task (attempt ${automationState.retryCount}/${automationState.maxRetries})`
+      );
+
+      // Wait a bit before retry
+      setTimeout(() => {
+        executeTaskInBolt(data);
+      }, 3000);
+      return;
+    }
+
+    // Max retries reached or no auto error fix
+    if (assistantIframe) {
+      assistantIframe.contentWindow.postMessage(
+        {
+          type: "AUTOMATION_ERROR",
+          error: error.message,
+        },
+        "*"
+      );
+    }
+  }
+}
+
+async function executeTaskInBolt(data) {
+  // Find the AI prompt box
+  const promptBox = document.querySelector(
+    ".bg-bolt-elements-prompt-background textarea"
+  );
+
+  if (!promptBox) {
+    throw new Error("Could not find AI prompt box on page");
+  }
+
+  console.log("Found prompt box:", promptBox);
+
+  // Wait for textarea to be enabled
+  await waitForCondition(() => !promptBox.disabled, 10000);
+
+  // Clear and set the task text
+  promptBox.value = "";
+  promptBox.focus();
+
+  // Type the task (simulate natural typing)
+  console.log("Typing task:", data.task.text, data);
+  await typeText(promptBox, data.task.text);
+
+  // Find and click submit button or press Enter
+  const submitButton =
+    document.querySelector('button[type="submit"]') ||
+    document.querySelector('[aria-label*="send"]') ||
+    document.querySelector('[data-testid*="send"]') ||
+    document.querySelector('button[aria-label*="submit"]');
+
+  if (submitButton && !submitButton.disabled) {
+    console.log("Clicking submit button");
+    submitButton.click();
+  } else {
+    console.log("Pressing Enter to submit");
+    const enterEvent = new KeyboardEvent("keydown", {
+      key: "Enter",
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+      bubbles: true,
+    });
+    promptBox.dispatchEvent(enterEvent);
+  }
+
+  // Wait for the textarea to become disabled (indicating processing)
+  await waitForCondition(() => promptBox.disabled, 2000);
+
+  // Wait for the textarea to become enabled again (indicating completion)
+  await waitForCondition(() => !promptBox.disabled, 60000); // 1 minute timeout
+
+  // Handle Supabase migration if enabled
+  if (data.settings.autoSupabaseMigration) {
+    await handleSupabaseMigration();
+  }
+
+  // Task completed successfully
+  if (assistantIframe) {
+    assistantIframe.contentWindow.postMessage(
+      {
+        type: "AUTOMATION_STEP_COMPLETE",
+        taskIndex: data.taskIndex,
+        totalTasks: data.totalTasks,
+      },
+      "*"
+    );
+  }
+
+  automationState.currentTask = null;
+  automationState.isRunning = false;
+}
+
+async function handleSupabaseMigration() {
+  console.log("Checking for Supabase migration prompts...");
+
+  // Look for migration-related buttons or prompts
+  const migrationButton =
+    document.querySelector('button:contains("Run Migration")') ||
+    document.querySelector('[data-testid*="migration"]') ||
+    document.querySelector('button[aria-label*="migration"]');
+
+  if (migrationButton && !migrationButton.disabled) {
+    console.log("Found migration button, clicking...");
+    migrationButton.click();
+
+    // Wait for migration to complete
+    await waitForCondition(() => !migrationButton.disabled, 10000);
+  }
+}
+
+function handleStopAutomation() {
+  console.log("Stopping automation...");
+  automationState.isRunning = false;
+  automationState.currentTask = null;
+  automationState.retryCount = 0;
+}
+
+// Utility functions for automation
+async function waitForCondition(condition, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+
+    const check = () => {
+      if (condition()) {
+        resolve(true);
+      } else if (Date.now() - startTime >= timeout) {
+        reject(new Error(`Condition not met within ${timeout}ms`));
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+
+    check();
+  });
+}
+
+async function typeText(element, text) {
+  return new Promise((resolve) => {
+    let index = 0;
+
+    const type = () => {
+      if (index < text.length) {
+        element.value += text[index];
+
+        // Trigger input events
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+
+        index++;
+        setTimeout(type, 50 + Math.random() * 50); // Variable typing speed
+      } else {
+        resolve();
+      }
+    };
+
+    type();
+  });
+}
+
+// Enhanced element finder (case-insensitive contains)
+function findElementByText(selector, text) {
+  const elements = document.querySelectorAll(selector);
+  return Array.from(elements).find((el) =>
+    el.textContent.toLowerCase().includes(text.toLowerCase())
+  );
+}
+
+// Add CSS selector extension for :contains()
+if (!Element.prototype.contains) {
+  Element.prototype.contains = function (text) {
+    return this.textContent.toLowerCase().includes(text.toLowerCase());
+  };
 }
 
 // URL change detection

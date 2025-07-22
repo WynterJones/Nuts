@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuts for Bolt Assistant</title>
     <link rel="stylesheet" href="iframe.css" />
   </head>
   <body>
     <div class="assistant-container">
-      <!-- Draggable Header -->
-      <div id="draggableHeader" class="header">
+      <!-- Header -->
+      <div class="header">
         <div class="header-left">
-          <button
-            id="backBtn"
-            class="header-btn hidden"
-            title="Back to projects"
-          >
+          <div class="project-info">
+            <h3 id="projectName">Nuts for Bolt</h3>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="backBtn" class="header-btn hidden">
             <svg
               width="20"
               height="20"
@@ -22,67 +24,46 @@
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
-          <div class="project-info">
-            <h3 id="projectName">Nuts for Bolt</h3>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button
-            id="deleteProjectBtn"
-            class="header-btn delete-btn hidden"
-            title="Delete project"
-          >
+          <button id="deleteProjectBtn" class="header-btn delete-btn hidden">
             <svg
-              width="16"
-              height="16"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
+              <polyline points="3,6 5,6 21,6"></polyline>
               <path
-                d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"
-              />
+                d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"
+              ></path>
             </svg>
           </button>
-          <button
-            id="clearBtn"
-            class="header-btn hidden"
-            title="Clear current tab data"
-          >
+          <button id="clearBtn" class="header-btn hidden">
             <svg
-              width="16"
-              height="16"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <path
-                d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c0-1 1-2 2-2v2"
-              />
+              <path d="M3 6h18l-2 13H5L3 6z"></path>
+              <path d="m8 9 4 4 4-4"></path>
             </svg>
           </button>
-          <button id="closeBtn" class="header-btn" title="Close assistant">
+          <button id="closeBtn" class="header-btn">
             <svg
-              width="16"
-              height="16"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -94,7 +75,7 @@
       <!-- Project List View -->
       <div id="projectListView" class="project-list-view">
         <div class="section-header">
-          <h2>All Projects</h2>
+          <h2>Projects</h2>
           <div class="header-actions">
             <button id="newProjectBtn" class="new-project-btn">
               New Project
@@ -103,7 +84,7 @@
         </div>
         <div id="projectsGrid" class="projects-grid">
           <div class="empty-state">
-            <p>No projects found. Create your first project to get started!</p>
+            <p>Loading projects...</p>
           </div>
         </div>
       </div>
@@ -122,7 +103,7 @@
           <!-- Tasks Tab -->
           <div id="tasksTab" class="tab-pane active">
             <div class="section-header">
-              <h4>Project Tasks</h4>
+              <h4>Tasks</h4>
               <button id="addTodoBtn" class="add-btn">Add Task</button>
             </div>
 
@@ -130,8 +111,8 @@
               <input
                 type="text"
                 id="todoInput"
-                placeholder="Enter a new task..."
                 class="todo-input"
+                placeholder="Enter task description..."
               />
               <div class="input-actions">
                 <button id="saveTodoBtn" class="save-btn">Save</button>
@@ -149,11 +130,11 @@
           <!-- Chat Tab -->
           <div id="chatTab" class="tab-pane">
             <div class="section-header">
-              <h4>AI Assistant</h4>
+              <h4>AI Chat</h4>
               <div class="chat-controls">
-                <span id="typingIndicator" class="typing-indicator hidden"
-                  >AI is typing...</span
-                >
+                <div id="typingIndicator" class="typing-indicator hidden">
+                  AI is typing...
+                </div>
                 <button id="clearChatBtn" class="clear-chat-btn">
                   Clear Chat
                 </button>
@@ -161,25 +142,13 @@
             </div>
 
             <div class="chat-container">
-              <div id="chatMessages" class="chat-messages">
-                <div class="message system-message">
-                  <div class="message-content">
-                    <p>
-                      Hello! I'm Nuts for Bolt, your AI agent. I can help you
-                      manage tasks, answer questions about your project, and
-                      provide development guidance. Try asking me to "add a
-                      task" or "complete the first task"!
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <div id="chatMessages" class="chat-messages"></div>
 
               <div class="chat-input-container">
                 <div class="input-wrapper">
                   <textarea
                     id="chatInput"
-                    placeholder="Ask me to manage tasks, add features, or answer questions..."
-                    rows="1"
+                    placeholder="Ask me anything about your project..."
                   ></textarea>
                   <button id="sendBtn" class="send-btn">
                     <svg
@@ -189,11 +158,9 @@
                       fill="none"
                       stroke="currentColor"
                       stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
                     >
-                      <line x1="22" y1="2" x2="11" y2="13" />
-                      <polygon points="22,2 15,22 11,13 2,9" />
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
                     </svg>
                   </button>
                 </div>
@@ -204,16 +171,98 @@
           <!-- Automation Tab -->
           <div id="automationTab" class="tab-pane">
             <div class="section-header">
-              <h4>Automation</h4>
-              <button id="addAutomationBtn" class="add-btn">Add Rule</button>
+              <h4>Automation Settings</h4>
             </div>
 
-            <div id="automationList" class="automation-list">
-              <div class="empty-state">
-                <p>
-                  No automation rules yet. Create rules to automate your
-                  workflow!
-                </p>
+            <div class="automation-settings">
+              <div class="setting-group">
+                <div class="setting-item">
+                  <label class="toggle-label">
+                    <input
+                      type="checkbox"
+                      id="autoSupabaseMigration"
+                      class="setting-toggle"
+                    />
+                    <span class="toggle-slider"></span>
+                    <span class="setting-title"
+                      >Auto Run Supabase Migration</span
+                    >
+                  </label>
+                  <p class="setting-description">
+                    Automatically run database migrations when detected
+                  </p>
+                </div>
+
+                <div class="setting-item">
+                  <label class="toggle-label">
+                    <input
+                      type="checkbox"
+                      id="autoErrorFix"
+                      class="setting-toggle"
+                    />
+                    <span class="toggle-slider"></span>
+                    <span class="setting-title"
+                      >Auto Run Error Fix (3 times and stop)</span
+                    >
+                  </label>
+                  <p class="setting-description">
+                    Automatically attempt to fix errors up to 3 times
+                  </p>
+                </div>
+
+                <div class="setting-item">
+                  <label class="toggle-label">
+                    <input
+                      type="checkbox"
+                      id="autoContinue"
+                      class="setting-toggle"
+                    />
+                    <span class="toggle-slider"></span>
+                    <span class="setting-title">Auto Continue</span>
+                  </label>
+                  <p class="setting-description">
+                    Automatically continue to next task after completion
+                  </p>
+                </div>
+              </div>
+
+              <div class="automation-status" style="display: none">
+                <div id="automationProgress" class="progress-info hidden">
+                  <div class="progress-spinner"></div>
+                  <span id="automationStatusText">Ready</span>
+                </div>
+              </div>
+
+              <div class="automation-controls">
+                <button id="runAutomationBtn" class="run-automation-btn">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polygon points="5,3 19,12 5,21 5,3"></polygon>
+                  </svg>
+                  Run Automation
+                </button>
+                <button
+                  id="stopAutomationBtn"
+                  class="stop-automation-btn hidden"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                  </svg>
+                  Stop
+                </button>
               </div>
             </div>
           </div>
@@ -221,10 +270,15 @@
       </div>
     </div>
 
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
+    <!-- Scripts -->
     <script src="core.js"></script>
     <script src="ui-manager.js"></script>
     <script src="project-manager.js"></script>
     <script src="chat-manager.js"></script>
+    <script src="automation-manager.js"></script>
     <script src="iframe.js"></script>
   </body>
 </html>

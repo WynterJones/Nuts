@@ -18,8 +18,6 @@ class ProjectManager {
     this.todoInput = document.getElementById("todoInput");
     this.saveTodoBtn = document.getElementById("saveTodoBtn");
     this.cancelTodoBtn = document.getElementById("cancelTodoBtn");
-    this.automationList = document.getElementById("automationList");
-    this.addAutomationBtn = document.getElementById("addAutomationBtn");
   }
 
   setupEventListeners() {
@@ -35,8 +33,6 @@ class ProjectManager {
       if (e.key === "Enter") this.saveTodo();
     });
 
-    this.addAutomationBtn.addEventListener("click", () => this.addAutomation());
-
     // Listen to events
     eventBus.on("view:projectList", () => this.loadAllProjects());
     eventBus.on("clear:tab", (tab) => this.clearTabData(tab));
@@ -45,14 +41,20 @@ class ProjectManager {
 
     // Message listener for external communication
     window.addEventListener("message", (event) => {
-      const { type, project, data } = event.data;
+      if (!event.data || !event.data.type) return;
+
+      const { type } = event.data;
 
       switch (type) {
         case "PROJECT_DATA":
-          this.loadProjectData(project, data);
+          if (event.data.project && event.data.data) {
+            this.loadProjectData(event.data.project, event.data.data);
+          }
           break;
         case "PROJECT_CHANGED":
-          this.loadProjectData(project, data);
+          if (event.data.project && event.data.data) {
+            this.loadProjectData(event.data.project, event.data.data);
+          }
           break;
       }
     });
@@ -109,7 +111,7 @@ class ProjectManager {
           .join("");
 
         return `
-        <div class="project-card" onclick="window.projectManager.openProject('${projectId}')">
+        <div class="project-card" data-project-id="${projectId}">
           <h4>${CoreUtils.escapeHtml(title)}</h4>
           <div class="project-tech">${techBadges}</div>
           <div class="project-meta">Last updated: ${lastUpdated}</div>
@@ -122,16 +124,36 @@ class ProjectManager {
       })
       .join("");
 
+    // Create the grid structure directly without extra wrapper
     this.projectsGrid.innerHTML = `<div class="grid">${projectCards}</div>`;
+
+    // Add click listeners after rendering
+    this.setupProjectClickListeners();
+  }
+
+  setupProjectClickListeners() {
+    const projectCards = this.projectsGrid.querySelectorAll(".project-card");
+    projectCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const projectId = card.getAttribute("data-project-id");
+        console.log("Project card clicked:", projectId);
+        this.openProject(projectId);
+      });
+    });
   }
 
   openProject(projectId) {
+    console.log("Opening project:", projectId);
     this.currentProject = projectId;
     this.projectData = this.allProjects[projectId];
 
+    if (!this.projectData) {
+      console.error("Project data not found for:", projectId);
+      return;
+    }
+
     window.uiManager.updateProjectHeader(this.projectData);
     this.renderTodos();
-    this.renderAutomations();
 
     eventBus.emit("project:loaded", this.projectData);
   }
@@ -141,15 +163,13 @@ class ProjectManager {
     this.projectData = data || {
       todos: [],
       chatHistory: [],
-      automations: [],
       title: project,
-      techStack: ["React", "Vite"],
+      techStack: ["React", "Vite", "TypeScript"],
       createdAt: new Date().toISOString(),
     };
 
     window.uiManager.updateProjectHeader(this.projectData);
     this.renderTodos();
-    this.renderAutomations();
 
     eventBus.emit("project:loaded", this.projectData);
   }
@@ -178,27 +198,14 @@ class ProjectManager {
             <textarea id="newProjectDescription" rows="4" placeholder="Braindump your ideas here and they will be turned into a web app task list by Nuts AI. Describe features, user stories, technical requirements, or anything else about your project..."></textarea>
           </div>
           <div class="form-group">
-            <label>Tech Stack</label>
-            <div class="tech-stack-selector">
-              <label class="tech-checkbox">
-                <input type="checkbox" value="React" checked> React
-              </label>
-              <label class="tech-checkbox">
-                <input type="checkbox" value="Vite" checked> Vite
-              </label>
-              <label class="tech-checkbox">
-                <input type="checkbox" value="Supabase"> Supabase
-              </label>
-              <label class="tech-checkbox">
-                <input type="checkbox" value="Netlify"> Netlify
-              </label>
-              <label class="tech-checkbox">
-                <input type="checkbox" value="TypeScript"> TypeScript
-              </label>
-              <label class="tech-checkbox">
-                <input type="checkbox" value="Tailwind"> Tailwind
-              </label>
+            <label>Tech Stack (Bolt Default)</label>
+            <div class="tech-stack-display">
+              <span class="tech-badge-react">React</span>
+              <span class="tech-badge-vite">Vite</span>
+              <span class="tech-badge-typescript">TypeScript</span>
+              <span class="tech-badge-tailwind">Tailwind</span>
             </div>
+            <p class="tech-stack-note">Bolt projects use this standard stack</p>
           </div>
         </div>
         <div class="modal-footer">
@@ -237,9 +244,6 @@ class ProjectManager {
 
     const titleInput = document.getElementById("newProjectTitle");
     const descriptionInput = document.getElementById("newProjectDescription");
-    const techCheckboxes = document.querySelectorAll(
-      'input[type="checkbox"]:checked'
-    );
 
     if (!titleInput || !descriptionInput) {
       console.error("Form inputs not found");
@@ -248,9 +252,8 @@ class ProjectManager {
 
     const title = titleInput.value.trim();
     const description = descriptionInput.value.trim();
-    const techStack = Array.from(techCheckboxes).map((cb) => cb.value);
 
-    console.log("Form data:", { title, description, techStack });
+    console.log("Form data:", { title, description });
 
     if (!title) {
       alert("Please enter a project title");
@@ -262,13 +265,13 @@ class ProjectManager {
       .replace(/[^a-z0-9]/g, "-")
       .replace(/-+/g, "-");
 
+    // Use standard Bolt tech stack
     const projectData = {
       title,
       description,
-      techStack: techStack.length > 0 ? techStack : ["React", "Vite"],
+      techStack: ["React", "Vite", "TypeScript", "Tailwind"],
       todos: [],
       chatHistory: [],
-      automations: [],
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
     };
@@ -459,63 +462,6 @@ class ProjectManager {
     }
   }
 
-  // Automation management
-  addAutomation() {
-    const name = prompt("Enter automation rule name:");
-    if (!name) return;
-
-    const description = prompt("Enter automation description:");
-    if (!description) return;
-
-    const automation = {
-      id: CoreUtils.generateId(),
-      name: name.trim(),
-      description: description.trim(),
-      active: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    if (!this.projectData.automations) {
-      this.projectData.automations = [];
-    }
-
-    this.projectData.automations.push(automation);
-    this.saveProjectData();
-    this.renderAutomations();
-  }
-
-  renderAutomations() {
-    if (
-      !this.projectData?.automations ||
-      this.projectData.automations.length === 0
-    ) {
-      this.automationList.innerHTML = `
-        <div class="empty-state">
-          <p>No automation rules yet. Create rules to automate your workflow!</p>
-        </div>
-      `;
-      return;
-    }
-
-    const automationItems = this.projectData.automations
-      .map(
-        (automation) => `
-      <div class="automation-item">
-        <h5>${CoreUtils.escapeHtml(automation.name)}</h5>
-        <p>${CoreUtils.escapeHtml(automation.description)}</p>
-        <span class="automation-status ${
-          automation.active ? "active" : "inactive"
-        }">
-          ${automation.active ? "Active" : "Inactive"}
-        </span>
-      </div>
-    `
-      )
-      .join("");
-
-    this.automationList.innerHTML = automationItems;
-  }
-
   clearTabData(tab) {
     switch (tab) {
       case "tasks":
@@ -525,10 +471,6 @@ class ProjectManager {
       case "chat":
         this.projectData.chatHistory = [];
         eventBus.emit("chat:cleared");
-        break;
-      case "automation":
-        this.projectData.automations = [];
-        this.renderAutomations();
         break;
     }
     this.saveProjectData();

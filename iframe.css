@@ -181,6 +181,7 @@ body {
   padding: 20px;
   cursor: pointer;
   transition: all 0.2s;
+  user-select: none;
 }
 
 .project-card:hover {
@@ -680,57 +681,196 @@ body {
   transform: none;
 }
 
-/* Automation Tab */
-.automation-list {
+/* Automation Tab Styles */
+.automation-settings {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-.automation-item {
-  padding: 20px;
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   background: #0a0a0a;
   border: 1px solid #1a1a1a;
   border-radius: 12px;
+  padding: 24px;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.setting-toggle {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #333333;
+  border-radius: 24px;
+  transition: all 0.2s;
+  border: 2px solid #333333;
+}
+
+.toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 50%;
   transition: all 0.2s;
 }
 
-.automation-item:hover {
-  border-color: #333333;
-  background: #0f0f0f;
+.setting-toggle:checked + .toggle-slider {
+  background: #00d4aa;
+  border-color: #00d4aa;
 }
 
-.automation-item h5 {
-  color: #00d4aa;
-  font-size: 16px;
+.setting-toggle:checked + .toggle-slider::after {
+  transform: translateX(20px);
+}
+
+.setting-title {
+  font-size: 15px;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  color: #ffffff;
 }
 
-.automation-item p {
+.setting-description {
+  font-size: 13px;
   color: #666666;
-  font-size: 14px;
-  margin: 0 0 12px 0;
+  margin: 0;
+  margin-left: 56px;
 }
 
 .automation-status {
-  display: inline-block;
-  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(0, 212, 170, 0.1);
+  border: 1px solid rgba(0, 212, 170, 0.3);
   border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
 }
 
-.automation-status.active {
-  background: #00d4aa;
+.progress-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333333;
+  border-top: 2px solid #00d4aa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#automationStatusText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #00d4aa;
+}
+
+.automation-controls {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 14px;
+}
+
+.run-automation-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
   color: #000000;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+  min-width: 180px;
+  justify-content: center;
 }
 
-.automation-status.inactive {
+.run-automation-btn:hover {
+  background: linear-gradient(135deg, #00b894 0%, #009874 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+}
+
+.run-automation-btn:active {
+  transform: translateY(0);
+}
+
+.run-automation-btn:disabled {
   background: #333333;
+  color: #666666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.stop-automation-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
   color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+  min-width: 140px;
+  justify-content: center;
+}
+
+.stop-automation-btn:hover {
+  background: linear-gradient(135deg, #ff3742 0%, #e63946 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+}
+
+.stop-automation-btn:active {
+  transform: translateY(0);
 }
 
 /* Modal Styles */
@@ -825,6 +965,20 @@ body {
 
 .form-group textarea {
   resize: vertical;
+}
+
+.tech-stack-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tech-stack-note {
+  font-size: 12px;
+  color: #666666;
+  font-style: italic;
+  margin: 0;
 }
 
 .tech-stack-selector {
