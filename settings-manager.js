@@ -1,14 +1,9 @@
 // Settings Manager - handles application settings
 class SettingsManager {
   constructor() {
-    this.settings = {
-      starterPrompt: "What kind of frameworks can you use?",
-      appendPrompt: "",
-    };
-
-    this.initElements();
+    this.settings = {};
+    this.init();
     this.setupEventListeners();
-    this.loadSettings();
   }
 
   initElements() {
@@ -18,25 +13,24 @@ class SettingsManager {
   }
 
   setupEventListeners() {
-    this.saveSettingsBtn.addEventListener("click", () => this.saveSettings());
-
-    // Auto-save on input change
-    this.starterPromptTextarea.addEventListener("input", () => {
-      this.settings.starterPrompt = this.starterPromptTextarea.value;
-      this.debouncedSave();
-    });
-
-    this.appendPromptTextarea.addEventListener("input", () => {
-      this.settings.appendPrompt = this.appendPromptTextarea.value;
-      this.debouncedSave();
-    });
-
-    // Listen for tab changes to ensure settings are updated
+    // Listen for tab changes to render settings when settings tab is active
     eventBus.on("tab:changed", (tab) => {
       if (tab === "settings") {
-        this.loadSettings();
+        this.renderSettings();
       }
     });
+  }
+
+  async init() {
+    // Set default settings
+    this.settings = {
+      starterPrompt: "Build me a basic web app for react, vite, supabase app.",
+      appendPrompt: "",
+      waitTime: 60000, // Default wait time in milliseconds (1 minute)
+    };
+
+    // Load settings from storage
+    await this.loadSettings();
   }
 
   async loadSettings() {
@@ -116,7 +110,8 @@ class SettingsManager {
   // Get starter prompt for automation
   getStarterPrompt() {
     return (
-      this.settings.starterPrompt || "What kind of frameworks can you use?"
+      this.settings.starterPrompt ||
+      "Build me a basic web app for react, vite, supabase app."
     );
   }
 
@@ -125,9 +120,104 @@ class SettingsManager {
     return this.settings.appendPrompt || "";
   }
 
+  // Get wait time in milliseconds
+  getWaitTime() {
+    return this.settings.waitTime || 60000;
+  }
+
+  // Show save confirmation
+  showSaveConfirmation() {
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    if (saveBtn) {
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = "Saved!";
+      saveBtn.style.background = "#00d4aa";
+      setTimeout(() => {
+        saveBtn.textContent = originalText;
+        saveBtn.style.background = "";
+      }, 1500);
+    }
+  }
+
   // Refresh settings from storage (useful when AI generates new starter prompt)
   async refreshSettings() {
     await this.loadSettings();
+  }
+
+  renderSettings() {
+    const settingsContent = document.getElementById("settingsContent");
+    if (!settingsContent) return;
+
+    settingsContent.innerHTML = `
+      <div class="settings-container">
+        <div class="setting-group">
+          <h3>Starter Prompt</h3>
+          <p class="setting-description">This prompt is used when starting a new project from the root domain (bolt.new). It helps initialize the project.</p>
+          <textarea 
+            id="starterPromptInput" 
+            placeholder="Build me a basic web app for react, vite, supabase app."
+            rows="4"
+          >${this.settings.starterPrompt || ""}</textarea>
+        </div>
+
+        <div class="setting-group">
+          <h3>Append Prompt</h3>
+          <p class="setting-description">This text will be appended to each task when sent to Bolt. Use it for consistent instructions across all tasks.</p>
+          <textarea 
+            id="appendPromptInput" 
+            placeholder="Keep files small, make and use reusable components"
+            rows="3"
+          >${this.settings.appendPrompt || ""}</textarea>
+        </div>
+
+        <div class="setting-group">
+          <h3>Wait Time</h3>
+          <p class="setting-description">How long to wait for Bolt to process each task before continuing to the next one.</p>
+          <select id="waitTimeSelect">
+            <option value="60000" ${
+              this.settings.waitTime === 60000 ? "selected" : ""
+            }>1 minute</option>
+            <option value="120000" ${
+              this.settings.waitTime === 120000 ? "selected" : ""
+            }>2 minutes</option>
+            <option value="300000" ${
+              this.settings.waitTime === 300000 ? "selected" : ""
+            }>5 minutes</option>
+            <option value="-1" ${
+              this.settings.waitTime === -1 ? "selected" : ""
+            }>Forever (manual)</option>
+          </select>
+        </div>
+
+        <div class="settings-actions">
+          <button id="saveSettingsBtn" class="save-btn">Save Settings</button>
+        </div>
+      </div>
+    `;
+
+    // Setup event listeners
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    const starterPromptInput = document.getElementById("starterPromptInput");
+    const appendPromptInput = document.getElementById("appendPromptInput");
+    const waitTimeSelect = document.getElementById("waitTimeSelect");
+
+    saveBtn.addEventListener("click", () => {
+      this.settings.starterPrompt = starterPromptInput.value;
+      this.settings.appendPrompt = appendPromptInput.value;
+      this.settings.waitTime = parseInt(waitTimeSelect.value);
+      this.saveSettings();
+      this.showSaveConfirmation();
+    });
+
+    // Auto-save on input changes
+    [starterPromptInput, appendPromptInput, waitTimeSelect].forEach((input) => {
+      input.addEventListener("change", () => {
+        this.settings.starterPrompt = starterPromptInput.value;
+        this.settings.appendPrompt = appendPromptInput.value;
+        this.settings.waitTime = parseInt(waitTimeSelect.value);
+        this.saveSettings();
+      });
+    });
   }
 }
 

@@ -89,10 +89,65 @@
       <div id="mainProjectView" class="main-project-view hidden">
         <!-- Tab Navigation -->
         <div class="tab-navigation">
-          <button class="tab-btn active" data-tab="chat">Chat</button>
-          <button class="tab-btn" data-tab="tasks">Tasks</button>
-          <button class="tab-btn" data-tab="automation">Automation</button>
-          <button class="tab-btn" data-tab="settings">Settings</button>
+          <button class="tab-btn active" data-tab="chat">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="m6 18l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm1-4h6q.425 0 .713-.288T14 13t-.288-.712T13 12H7q-.425 0-.712.288T6 13t.288.713T7 14m0-3h10q.425 0 .713-.288T18 10t-.288-.712T17 9H7q-.425 0-.712.288T6 10t.288.713T7 11m0-3h10q.425 0 .713-.288T18 7t-.288-.712T17 6H7q-.425 0-.712.288T6 7t.288.713T7 8"
+              />
+            </svg>
+            <span>Chat</span>
+          </button>
+          <button class="tab-btn" data-tab="tasks">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M17.75 2.001a2.25 2.25 0 0 1 2.245 2.096L20 4.25v10.128q-.181.12-.341.28l-3.409 3.408l-.908-.91a2.24 2.24 0 0 0-1.5-.657h2.408a.75.75 0 1 0 0-1.5h-5.004a.75.75 0 0 0 0 1.5h2.413a2.25 2.25 0 0 0-1.5 3.839l1.659 1.66H6.25a2.25 2.25 0 0 1-2.245-2.096L4 19.75V4.251a2.25 2.25 0 0 1 2.096-2.245l.154-.005zM9 7.751a1 1 0 1 0-2 0a1 1 0 0 0 2 0M11.246 7a.75.75 0 0 0 0 1.5h5.004a.75.75 0 1 0 0-1.5zm-.75 4.75c0 .414.336.75.75.75h5.004a.75.75 0 1 0 0-1.5h-5.004a.75.75 0 0 0-.75.75M9 11.75a1 1 0 1 0-2 0a1 1 0 0 0 2 0m0 3.998a1 1 0 1 0-2 0a1 1 0 0 0 2 0m7.25 4.441l4.47-4.47a.75.75 0 1 1 1.06 1.061l-5 5l-.051.047a.75.75 0 0 1-1.01-.047l-2.5-2.501a.75.75 0 0 1 1.062-1.06z"
+              />
+            </svg>
+            <span>Tasks</span>
+          </button>
+          <button class="tab-btn" data-tab="automation">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 48 48"
+            >
+              <path
+                fill="currentColor"
+                fill-rule="evenodd"
+                d="m20.793 4.958l.003-.003c.46-.178 1.452-.455 3.203-.455s2.745.277 3.204.455l.002.003c.019.02.045.057.07.11c1.162 2.348 2.538 4.187 4.506 5.333c1.97 1.147 4.25 1.434 6.874 1.27a.5.5 0 0 1 .126.007c.384.312 1.122 1.04 1.999 2.568c.88 1.534 1.138 2.542 1.214 3.033l-.003.007a.5.5 0 0 1-.06.12C40.482 19.6 39.59 21.72 39.59 24s.893 4.4 2.34 6.594a.5.5 0 0 1 .06.12l.003.007c-.075.491-.333 1.5-1.214 3.033c-.877 1.528-1.613 2.256-1.998 2.568a.5.5 0 0 1-.127.007c-2.623-.164-4.903.123-6.874 1.27c-1.968 1.146-3.344 2.985-4.505 5.333a.5.5 0 0 1-.07.11l-.003.003c-.46.178-1.452.455-3.204.455c-1.75 0-2.743-.277-3.203-.455a5 5 0 0 1-.188-.235l-.167-.215c-.552-.704-1.912-2.246-3.766-3.617c-1.822-1.348-4.377-2.72-7.257-2.647a1 1 0 0 1-.2-.01c-.384-.31-1.12-1.039-1.998-2.567c-.88-1.534-1.139-2.542-1.214-3.033l.002-.007a.5.5 0 0 1 .061-.12C7.516 28.4 8.407 26.28 8.407 24s-.89-4.4-2.337-6.593a.5.5 0 0 1-.061-.12l-.003-.008c.076-.49.334-1.5 1.214-3.033c.877-1.528 1.614-2.256 1.998-2.568a.5.5 0 0 1 .127-.006c2.624.164 4.903-.125 6.873-1.272c1.968-1.146 3.344-2.985 4.505-5.332a.5.5 0 0 1 .07-.11M24 .5c-2.297 0-3.831.385-4.806.789a3.8 3.8 0 0 0-1.386 1.009a4.5 4.5 0 0 0-.67.997c-.989 2-1.919 3.059-2.932 3.649c-1.011.589-2.387.874-4.61.736a4.5 4.5 0 0 0-1.203.085a3.8 3.8 0 0 0-1.56.7c-.834.646-1.932 1.789-3.08 3.79c-1.15 2-1.583 3.526-1.722 4.573a3.85 3.85 0 0 0 .175 1.697c.13.398.313.762.525 1.084c1.23 1.864 1.677 3.208 1.677 4.39c0 1.184-.447 2.528-1.677 4.392a4.5 4.5 0 0 0-.525 1.084a3.85 3.85 0 0 0-.175 1.698c.138 1.046.573 2.572 1.72 4.573c1.15 2 2.248 3.143 3.082 3.788a3.8 3.8 0 0 0 1.56.701c.417.088.806.103 1.128.095c1.578-.04 3.25.734 4.776 1.864c1.495 1.105 2.606 2.37 2.998 2.87l.07.091c.112.145.289.375.461.569c.308.345.743.724 1.332.972c.972.41 2.516.804 4.842.804c2.297 0 3.832-.384 4.806-.789a3.8 3.8 0 0 0 1.387-1.008c.278-.312.499-.652.67-.998c.989-2 1.919-3.06 2.932-3.65c1.011-.588 2.387-.873 4.612-.734c.385.024.792.001 1.202-.085a3.8 3.8 0 0 0 1.56-.701c.835-.646 1.933-1.788 3.081-3.79c1.149-2 1.583-3.526 1.721-4.572a3.85 3.85 0 0 0-.175-1.698a4.5 4.5 0 0 0-.525-1.084c-1.231-1.866-1.678-3.21-1.678-4.391s.447-2.525 1.677-4.391c.213-.322.396-.686.526-1.084a3.85 3.85 0 0 0 .175-1.698c-.139-1.046-.573-2.572-1.721-4.573c-1.149-2-2.247-3.143-3.081-3.789a3.8 3.8 0 0 0-1.56-.7a4.5 4.5 0 0 0-1.203-.086c-2.224.14-3.6-.146-4.611-.735c-1.013-.59-1.943-1.649-2.932-3.65a4.5 4.5 0 0 0-.67-.996a3.8 3.8 0 0 0-1.387-1.01C27.831.886 26.296.5 24 .5m-5.225 16.021c.757-.47 1.712-.567 2.665-.198c1.165.451 2.725 1.15 4.766 2.234c1.952 1.037 3.461 1.958 4.603 2.721c1.008.674 1.541 1.683 1.541 2.72c0 1.039-.533 2.048-1.54 2.722c-1.143.763-2.652 1.684-4.604 2.72c-2.04 1.085-3.6 1.784-4.766 2.235c-.953.368-1.908.273-2.665-.199c-.754-.469-1.272-1.284-1.416-2.28C17.165 27.86 17 26.103 17 24s.165-3.86.358-5.198c.144-.996.662-1.81 1.416-2.28"
+                clip-rule="evenodd"
+              />
+            </svg>
+
+            <span>Automation</span>
+          </button>
+          <button class="tab-btn" data-tab="settings">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"
+              />
+            </svg>
+            <span>Settings</span>
+          </button>
         </div>
 
         <!-- Tab Content -->
@@ -277,61 +332,9 @@
           </div>
 
           <!-- Settings Tab -->
-          <div id="settingsTab" class="tab-pane">
-            <div class="section-header">
-              <h4>Settings</h4>
-            </div>
-
-            <div class="settings-container">
-              <div class="setting-group">
-                <div class="setting-item">
-                  <label class="setting-label">Starter Prompt</label>
-                  <p class="setting-description">
-                    This prompt is used when starting a new project from the
-                    root domain (bolt.new). It helps initialize the project.
-                  </p>
-                  <textarea
-                    id="starterPrompt"
-                    class="setting-textarea"
-                    rows="8"
-                    placeholder="Enter the prompt that will be used when starting a new project..."
-                  ></textarea>
-                </div>
-
-                <div class="setting-item">
-                  <label class="setting-label">Append Prompt</label>
-                  <p class="setting-description">
-                    This text will be appended to each task when sent to Bolt.
-                    Use it for consistent instructions across all tasks.
-                  </p>
-                  <textarea
-                    id="appendPrompt"
-                    class="setting-textarea"
-                    rows="4"
-                    placeholder="Keep files small, make and use reusable components"
-                  ></textarea>
-                </div>
-              </div>
-
-              <div class="settings-actions">
-                <button id="saveSettingsBtn" class="save-settings-btn">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                    ></path>
-                    <polyline points="17,21 17,13 7,13 7,21"></polyline>
-                    <polyline points="7,3 7,8 15,8"></polyline>
-                  </svg>
-                  Save Settings
-                </button>
-              </div>
+          <div id="settingsTab" class="tab-pane settings-tab">
+            <div id="settingsContent">
+              <!-- Settings content will be dynamically rendered here -->
             </div>
           </div>
         </div>

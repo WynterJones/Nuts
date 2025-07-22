@@ -337,7 +337,8 @@ async function handleStartingSequence(settings) {
     if (textarea) {
       console.log("Found start button, using starter prompt...");
       const starterPrompt =
-        settings.starterPrompt || "What kind of frameworks can you use?";
+        settings.starterPrompt ||
+        "Build me a basic web app for react, vite, supabase app.";
       await typeText(textarea, starterPrompt, settings.slowType);
       textarea.focus();
       textarea.dispatchEvent(
@@ -420,8 +421,11 @@ async function handleTaskExecution(data) {
 
     // Don't retry timeout errors - they usually mean the task completed but button behavior was different
     if (isTimeoutError) {
+      const waitTime = data.settings.waitTime || 180000;
+      const waitTimeText =
+        waitTime === -1 ? "indefinite wait" : `${waitTime / 1000} seconds`;
       console.log(
-        "Timeout error detected after 90 seconds - stopping automation"
+        `Timeout error detected after ${waitTimeText} - stopping automation`
       );
 
       // Stop automation instead of continuing
@@ -429,7 +433,7 @@ async function handleTaskExecution(data) {
         assistantIframe.contentWindow.postMessage(
           {
             type: "AUTOMATION_ERROR",
-            error: "Task timed out after 90 seconds. Automation stopped.",
+            error: `Task timed out after ${waitTimeText}. Automation stopped.`,
           },
           "*"
         );
@@ -506,16 +510,26 @@ async function executeTaskInBolt(data) {
 
   // Wait for THE SPECIFIC BUTTON to disappear - once gone, task is complete!
   console.log("Waiting for the .absolute button to disappear...");
-  await waitForCondition(() => {
-    const specificButton = document.querySelector(
-      ".bg-bolt-elements-prompt-background button.absolute"
-    );
-    const isGone = !specificButton;
-    if (!isGone) {
-      console.log("Button still present, waiting...");
-    }
-    return isGone;
-  }, 180000); // 2 minutes timeout for button to disappear
+
+  // Get wait time from settings (default to 3 minutes if not set)
+  const waitTime = data.settings.waitTime || 180000;
+  const waitTimeText =
+    waitTime === -1 ? "indefinitely" : `${waitTime / 1000} seconds`;
+  console.log(`Using wait time: ${waitTimeText}`);
+
+  await waitForCondition(
+    () => {
+      const specificButton = document.querySelector(
+        ".bg-bolt-elements-prompt-background button.absolute"
+      );
+      const isGone = !specificButton;
+      if (!isGone) {
+        console.log("Button still present, waiting...");
+      }
+      return isGone;
+    },
+    waitTime === -1 ? Infinity : waitTime
+  );
 
   console.log(
     "✅ The .absolute button disappeared - task processing complete!"
