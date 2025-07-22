@@ -8,6 +8,7 @@ class AutomationManager {
       autoSupabaseMigration: false,
       autoErrorFix: false,
       autoContinue: true,
+      slowType: true, // Default to human-like typing
     };
 
     this.initElements();
@@ -21,6 +22,7 @@ class AutomationManager {
     );
     this.autoErrorFixToggle = document.getElementById("autoErrorFix");
     this.autoContinueToggle = document.getElementById("autoContinue");
+    this.slowTypeToggle = document.getElementById("slowType");
     this.runAutomationBtn = document.getElementById("runAutomationBtn");
     this.stopAutomationBtn = document.getElementById("stopAutomationBtn");
     this.automationProgress = document.getElementById("automationProgress");
@@ -41,6 +43,11 @@ class AutomationManager {
 
     this.autoContinueToggle.addEventListener("change", (e) => {
       this.settings.autoContinue = e.target.checked;
+      this.saveSettings();
+    });
+
+    this.slowTypeToggle.addEventListener("change", (e) => {
+      this.settings.slowType = e.target.checked;
       this.saveSettings();
     });
 
@@ -95,6 +102,7 @@ class AutomationManager {
       this.settings.autoSupabaseMigration;
     this.autoErrorFixToggle.checked = this.settings.autoErrorFix;
     this.autoContinueToggle.checked = this.settings.autoContinue;
+    this.slowTypeToggle.checked = this.settings.slowType;
   }
 
   async startAutomation() {
@@ -478,6 +486,14 @@ class AutomationManager {
               <span class="setting-title">Auto Continue</span>
             </label>
             <p class="setting-description">Automatically continue to next task after completion</p>
+          </div>
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="slowType" class="setting-toggle">
+              <span class="toggle-slider"></span>
+              <span class="setting-title">Slow Type</span>
+            </label>
+            <p class="setting-description">Type like a human with realistic delays (vs instant typing)</p>
           </div>
         </div>
         <div class="automation-status">

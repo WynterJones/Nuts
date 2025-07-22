@@ -336,7 +336,11 @@ async function handleStartingSequence(settings) {
 
     if (textarea) {
       console.log("Found start button, clicking...");
-      textarea.value = "What kind of frameworks can you use?";
+      await typeText(
+        textarea,
+        "What kind of frameworks can you use?",
+        settings.slowType
+      );
       textarea.focus();
       textarea.dispatchEvent(
         new KeyboardEvent("keydown", {
@@ -419,17 +423,15 @@ async function handleTaskExecution(data) {
     // Don't retry timeout errors - they usually mean the task completed but button behavior was different
     if (isTimeoutError) {
       console.log(
-        "Timeout error detected - assuming task completed and moving on"
+        "Timeout error detected after 90 seconds - stopping automation"
       );
 
-      // Mark task as complete and move to next
+      // Stop automation instead of continuing
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
           {
-            type: "AUTOMATION_STEP_COMPLETE",
-            taskIndex: data.taskIndex,
-            totalTasks: data.totalTasks,
-            task: data.task,
+            type: "AUTOMATION_ERROR",
+            error: "Task timed out after 90 seconds. Automation stopped.",
           },
           "*"
         );
@@ -488,7 +490,7 @@ async function executeTaskInBolt(data) {
 
   // Type the task (simulate natural typing)
   console.log("Typing task:", data.task.text, data);
-  await typeText(promptBox, data.task.text);
+  await typeText(promptBox, data.task.text, data.settings.slowType);
 
   // Find the specific submit button that user confirmed works
   const submitButton = document.querySelector(
@@ -515,7 +517,7 @@ async function executeTaskInBolt(data) {
       console.log("Button still present, waiting...");
     }
     return isGone;
-  }, 15000); // 15 second timeout for button to disappear
+  }, 180000); // 2 minutes timeout for button to disappear
 
   console.log(
     "✅ The .absolute button disappeared - task processing complete!"
@@ -604,8 +606,18 @@ async function waitForCondition(condition, timeout = 5000) {
   });
 }
 
-async function typeText(element, text) {
+async function typeText(element, text, slowType = true) {
   return new Promise((resolve) => {
+    if (!slowType) {
+      // Instant typing - set value directly
+      element.value = text;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+      resolve();
+      return;
+    }
+
+    // Slow/human-like typing
     let index = 0;
 
     const type = () => {
