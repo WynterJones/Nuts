@@ -25,7 +25,7 @@ class SettingsManager {
     this.settings = {
       starterPrompt: "Build me a basic web app for react, vite, supabase app.",
       appendPrompt: "",
-      waitTime: 60000, // Default wait time in milliseconds (1 minute)
+      waitTime: 120000, // Default wait time in milliseconds (1 minute)
     };
 
     // Load settings from storage
@@ -80,7 +80,7 @@ class SettingsManager {
         starterPrompt:
           "Build me a basic web app for react, vite, supabase app.",
         appendPrompt: "",
-        waitTime: 180000,
+        waitTime: 120000,
       };
 
       // Save default settings to the project
@@ -182,7 +182,7 @@ class SettingsManager {
 
   // Get wait time in milliseconds
   getWaitTime() {
-    return this.settings.waitTime || 60000;
+    return this.settings.waitTime || 120000;
   }
 
   // Show save confirmation

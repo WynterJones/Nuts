@@ -204,7 +204,7 @@ ${
               updatedProjectData.settings = {
                 starterPrompt: "",
                 appendPrompt: "",
-                waitTime: 180000,
+                waitTime: 120000,
               };
             }
             updatedProjectData.settings.starterPrompt = generatedStarterPrompt;

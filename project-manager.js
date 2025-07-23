@@ -153,7 +153,7 @@ class ProjectManager {
                 starterPrompt:
                   "Build me a basic web app for react, vite, supabase app.",
                 appendPrompt: "",
-                waitTime: 180000,
+                waitTime: 120000,
               };
               // Save the migrated project
               StorageManager.set(`project_${projectId}`, projectData);
@@ -169,14 +169,6 @@ class ProjectManager {
               }`
             );
           } else {
-            console.warn(`Skipping invalid project: ${projectId}`, {
-              hasData: !!projectData,
-              dataType: typeof projectData,
-              title: projectData?.title,
-              hasCreatedAt: !!projectData?.createdAt,
-              hasTodos: Array.isArray(projectData?.todos),
-              hasChatHistory: Array.isArray(projectData?.chatHistory),
-            });
             // Optionally clean up invalid projects from storage
             this.cleanupInvalidProject(key, projectId);
           }
@@ -364,8 +356,8 @@ class ProjectManager {
             <input type="text" id="newProjectTitle" placeholder="My Awesome App" />
           </div>
           <div class="form-group">
-            <label>Project Description / Braindump</label>
-            <textarea id="newProjectDescription" rows="4" placeholder="Braindump your ideas here and they will be turned into a web app task list by Nuts AI. Describe features, user stories, technical requirements, or anything else about your project..."></textarea>
+            <label>Braindump</label>
+            <textarea id="newProjectDescription" rows="4" placeholder="Explain your ideas here and they will be turned into a web app task list by Nuts AI. Describe features, user stories, technical requirements, or anything else about your project..."></textarea>
           </div>
           <div class="form-group">
             <div class="checkbox-group">
@@ -374,7 +366,7 @@ class ProjectManager {
                 <span class="checkmark"></span>
                 <span class="checkbox-title">Supabase Database / Authentication</span>
               </label>
-              <p class="checkbox-description">Include database setup, user authentication, and functions</p>
+              <p class="checkbox-description">Include database setup, user authentication, and Supabase functions.</p>
             </div>
           </div>
         </div>
@@ -482,7 +474,7 @@ class ProjectManager {
       settings: {
         starterPrompt: defaultStarterPrompt,
         appendPrompt: "",
-        waitTime: 180000,
+        waitTime: 120000,
       },
     };
 
