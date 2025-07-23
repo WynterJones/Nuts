@@ -510,7 +510,7 @@ async function handleSupabaseMigration() {
   if (migrationButton && !migrationButton.disabled) {
     migrationButton.click();
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 6000));
 
     await waitForCondition(
       () =>

@@ -54,6 +54,10 @@ class AutomationManager {
       this.tasks = projectData.todos || [];
     });
 
+    eventBus.on("tasks:updated", (todos) => {
+      this.tasks = todos || [];
+    });
+
     eventBus.on("tab:changed", (tab) => {
       if (tab === "automation") {
         this.checkUrlAndUpdateUI();
@@ -319,7 +323,8 @@ class AutomationManager {
       return;
     }
 
-    const firstIncompleteIndex = this.tasks.findIndex(
+    const sortedTasks = this.getSortedTasks();
+    const firstIncompleteIndex = sortedTasks.findIndex(
       (task) => !task.completed
     );
 
@@ -329,10 +334,24 @@ class AutomationManager {
       return;
     }
 
-    const firstTask = this.tasks[firstIncompleteIndex];
-    const incompleteTasks = this.tasks.filter((task) => !task.completed);
+    const firstTask = sortedTasks[firstIncompleteIndex];
 
-    await this.executeTask(firstTask, firstIncompleteIndex, this.tasks.length);
+    await this.executeTask(firstTask, firstIncompleteIndex, sortedTasks.length);
+  }
+
+  getSortedTasks() {
+    const tasksWithSortOrder = [...this.tasks];
+
+    tasksWithSortOrder.forEach((task, index) => {
+      if (task.sortOrder === undefined) {
+        task.sortOrder = index;
+      }
+    });
+
+    return tasksWithSortOrder.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return (a.sortOrder || 0) - (b.sortOrder || 0);
+    });
   }
 
   async executeTask(task, index, total) {
@@ -392,19 +411,18 @@ class AutomationManager {
         }
       }
 
-      const nextIncompleteIndex = this.tasks.findIndex(
+      const sortedTasks = this.getSortedTasks();
+      const nextIncompleteIndex = sortedTasks.findIndex(
         (task, index) => index > data.taskIndex && !task.completed
       );
 
-      const incompleteTasks = this.tasks.filter((task) => !task.completed);
-
       if (nextIncompleteIndex !== -1) {
-        const nextTask = this.tasks[nextIncompleteIndex];
+        const nextTask = sortedTasks[nextIncompleteIndex];
 
         if (this.settings.autoContinue) {
           this.updateStatus("Waiting before next task...");
           setTimeout(() => {
-            this.executeTask(nextTask, nextIncompleteIndex, this.tasks.length);
+            this.executeTask(nextTask, nextIncompleteIndex, sortedTasks.length);
           }, 5000);
         } else {
           this.currentTaskIndex = nextIncompleteIndex;
@@ -412,7 +430,7 @@ class AutomationManager {
           this.showNextTaskButton(
             nextTask,
             nextIncompleteIndex,
-            this.tasks.length
+            sortedTasks.length
           );
         }
       } else {
@@ -467,10 +485,11 @@ class AutomationManager {
   }
 
   getAutomationStatus() {
+    const sortedTasks = this.getSortedTasks();
     return {
       isRunning: this.isRunning,
       currentTaskIndex: this.currentTaskIndex,
-      totalTasks: this.tasks.filter((task) => !task.completed).length,
+      totalTasks: sortedTasks.filter((task) => !task.completed).length,
       settings: this.settings,
     };
   }
@@ -479,7 +498,8 @@ class AutomationManager {
     const automationTab = document.getElementById("automationTab");
     if (!automationTab) return;
 
-    const completedTasks = this.tasks.filter((t) => t.completed).length;
+    const sortedTasks = this.getSortedTasks();
+    const completedTasks = sortedTasks.filter((t) => t.completed).length;
     const taskProgress = completedTasks + 1;
 
     automationTab.innerHTML = `
@@ -557,13 +577,14 @@ class AutomationManager {
     if (task && index !== undefined && total) {
       this.executeTask(task, index, total);
     } else {
-      const nextIncompleteIndex = this.tasks.findIndex(
+      const sortedTasks = this.getSortedTasks();
+      const nextIncompleteIndex = sortedTasks.findIndex(
         (task, index) => index > this.currentTaskIndex && !task.completed
       );
 
       if (nextIncompleteIndex !== -1) {
-        const nextTask = this.tasks[nextIncompleteIndex];
-        this.executeTask(nextTask, nextIncompleteIndex, this.tasks.length);
+        const nextTask = sortedTasks[nextIncompleteIndex];
+        this.executeTask(nextTask, nextIncompleteIndex, sortedTasks.length);
       } else {
         this.updateStatus("No more tasks to execute");
         this.stopAutomation();

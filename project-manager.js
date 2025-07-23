@@ -97,6 +97,8 @@ class ProjectManager {
               window.settingsManager.refreshSettings();
             }
 
+            eventBus.emit("tasks:updated", this.projectData.todos);
+
             this.finalizeProjectCreation(this.currentProject, this.projectData);
           } else {
             console.warn(
@@ -539,6 +541,8 @@ class ProjectManager {
     this.saveProjectData();
     this.renderTodos();
     this.hideTodoInput();
+
+    eventBus.emit("tasks:updated", this.projectData.todos);
   }
 
   toggleTodo(id) {
@@ -548,6 +552,8 @@ class ProjectManager {
       task.updatedAt = new Date().toISOString();
       this.saveProjectData();
       this.renderTodos();
+
+      eventBus.emit("tasks:updated", this.projectData.todos);
     }
   }
 
@@ -555,6 +561,8 @@ class ProjectManager {
     this.projectData.todos = this.projectData.todos.filter((t) => t.id !== id);
     this.saveProjectData();
     this.renderTodos();
+
+    eventBus.emit("tasks:updated", this.projectData.todos);
   }
 
   renderTodos() {
@@ -671,6 +679,7 @@ class ProjectManager {
       if (newText && newText !== currentText) {
         task.text = newText;
         this.saveProjectData();
+        eventBus.emit("tasks:updated", this.projectData.todos);
       }
 
       this.renderTodos();
@@ -752,6 +761,8 @@ class ProjectManager {
       this.saveProjectData();
 
       this.renderTodos();
+
+      eventBus.emit("tasks:updated", this.projectData.todos);
     });
   }
 
@@ -794,6 +805,8 @@ class ProjectManager {
 
     this.saveProjectData();
     this.renderTodos();
+
+    eventBus.emit("tasks:updated", this.projectData.todos);
   }
 
   addTaskFromAI(taskText, priority = "normal") {

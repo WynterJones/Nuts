@@ -1091,26 +1091,6 @@ body {
   text-align: right;
 }
 
-.save-btn {
-  background: var(--border-secondary);
-  color: var(--text-primary);
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.save-btn:hover {
-  background: var(--border-hover);
-}
-
-.save-btn:active {
-  transform: translateY(1px);
-}
-
 /* Automation Tab Styles */
 .automation-settings {
   flex: 1;
