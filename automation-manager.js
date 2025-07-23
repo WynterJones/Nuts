@@ -13,6 +13,10 @@ class AutomationManager {
     this.setupEventListeners();
     this.loadSettings();
     this.checkUrlAndUpdateUI();
+
+    setTimeout(() => {
+      this.updateAutomationDescription();
+    }, 100);
   }
 
   initElements() {
@@ -31,16 +35,19 @@ class AutomationManager {
     this.autoSupabaseMigrationToggle.addEventListener("change", (e) => {
       this.settings.autoSupabaseMigration = e.target.checked;
       this.saveSettings();
+      this.updateAutomationDescription();
     });
 
     this.autoErrorFixToggle.addEventListener("change", (e) => {
       this.settings.autoErrorFix = e.target.checked;
       this.saveSettings();
+      this.updateAutomationDescription();
     });
 
     this.autoContinueToggle.addEventListener("change", (e) => {
       this.settings.autoContinue = e.target.checked;
       this.saveSettings();
+      this.updateAutomationDescription();
     });
 
     this.runAutomationBtn.addEventListener("click", () =>
@@ -60,7 +67,12 @@ class AutomationManager {
 
     eventBus.on("tab:changed", (tab) => {
       if (tab === "automation") {
+        this.refreshTasks();
         this.checkUrlAndUpdateUI();
+
+        setTimeout(() => {
+          this.updateAutomationDescription();
+        }, 50);
       }
     });
 
@@ -82,6 +94,7 @@ class AutomationManager {
         this.settings = { ...this.settings, ...savedSettings };
         this.updateToggleStates();
       }
+      this.updateAutomationDescription();
     } catch (error) {
       console.error("Error loading automation settings:", error);
     }
@@ -104,6 +117,8 @@ class AutomationManager {
 
   async startAutomation() {
     if (this.isRunning) return;
+
+    this.refreshTasks();
 
     this.isRunning = true;
     this.currentTaskIndex = 0;
@@ -172,10 +187,93 @@ class AutomationManager {
       } else {
         this.showUnsupportedUrlMessage();
       }
+
+      this.updateAutomationDescription();
     } catch (error) {
       console.error("Error checking URL:", error);
       this.showNormalAutomationUI();
+      this.updateAutomationDescription();
     }
+  }
+
+  refreshTasks() {
+    if (window.projectManager && window.projectManager.projectData) {
+      const currentTasks = window.projectManager.projectData.todos || [];
+      this.tasks = [...currentTasks];
+
+      const incompleteTasks = this.getSortedTasks().filter((t) => !t.completed);
+      const completedTasks = this.getSortedTasks().filter((t) => t.completed);
+
+      if (this.automationStatusText && !this.isRunning) {
+        this.updateStatus(
+          `Ready - ${incompleteTasks.length} pending, ${completedTasks.length} completed`
+        );
+      }
+
+      this.updateAutomationDescription();
+    } else if (this.automationStatusText && !this.isRunning) {
+      this.updateStatus("No project loaded");
+      this.updateAutomationDescription();
+    }
+  }
+
+  updateAutomationDescription() {
+    const descriptionElement = document.getElementById("automationDescription");
+    if (!descriptionElement) {
+      return;
+    }
+
+    if (!this.tasks || this.tasks.length === 0) {
+      if (window.projectManager && window.projectManager.currentProject) {
+        descriptionElement.textContent =
+          "No tasks available. Add tasks to enable automation.";
+      } else {
+        descriptionElement.textContent =
+          "No project loaded. Select a project to view automation options.";
+      }
+      return;
+    }
+
+    const sortedTasks = this.getSortedTasks();
+    const activeTasks = sortedTasks.filter((t) => !t.completed).length;
+    const totalTasks = sortedTasks.length;
+
+    if (totalTasks === 0) {
+      descriptionElement.textContent =
+        "No tasks available. Add tasks to enable automation.";
+      return;
+    }
+
+    if (activeTasks === 0) {
+      descriptionElement.textContent = `All ${totalTasks} tasks completed. Nothing to automate.`;
+      return;
+    }
+
+    let description = `The automator will run ${activeTasks} active task${
+      activeTasks !== 1 ? "s" : ""
+    } (of ${totalTasks}) and will paste each task into the prompt box`;
+
+    if (this.settings.autoContinue) {
+      description += ", auto-continue to the next task";
+    } else {
+      description += ", wait for manual continue";
+    }
+
+    if (this.settings.autoSupabaseMigration) {
+      description += ", auto-run Supabase migrations";
+    } else {
+      description += ", stop if Supabase migrations are detected";
+    }
+
+    if (this.settings.autoErrorFix) {
+      description += ", and attempt to fix errors automatically";
+    } else {
+      description += ", and stop if errors are detected";
+    }
+
+    description += ".";
+
+    descriptionElement.textContent = description;
   }
 
   showStartingPromptMessage() {
@@ -614,7 +712,7 @@ class AutomationManager {
               <span class="toggle-slider"></span>
               <span class="setting-title">Auto Run Error Fix</span>
             </label>
-            <p class="setting-description">Automatically attempt to fix errors up to 3 times</p>
+            <p class="setting-description">Automatically attempt to fix errors</p>
           </div>
           <div class="setting-item">
             <label class="toggle-label">
@@ -632,16 +730,19 @@ class AutomationManager {
           </div>
         </div>
         <div class="automation-controls">
-          <button id="runAutomationBtn" class="run-automation-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5,3 19,12 5,21 5,3"></polygon>
-            </svg>
-            Run Automation
-          </button>
-          <button id="stopAutomationBtn" class="stop-automation-btn hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-6.5v-2a1.5 1.5 0 1 1 3 0V12m0-6.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 7.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2h.208a6 6 0 0 1-5.012-2.7L7 19q-.468-.718-3.286-5.728a1.5 1.5 0 0 1 .536-2.022a1.87 1.87 0 0 1 2.28.28L8 13"/></g></svg>
-            Stop
-          </button>
+          <div class="automation-buttons">
+            <button id="runAutomationBtn" class="run-automation-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5,3 19,12 5,21 5,3"></polygon>
+              </svg>
+              Run Automation
+            </button>
+            <button id="stopAutomationBtn" class="stop-automation-btn hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-6.5v-2a1.5 1.5 0 1 1 3 0V12m0-6.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 7.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2h.208a6 6 0 0 1-5.012-2.7L7 19q-.468-.718-3.286-5.728a1.5 1.5 0 0 1 .536-2.022a1.87 1.87 0 0 1 2.28.28L8 13"/></g></svg>
+              Stop
+            </button>
+          </div>
+          <p id="automationDescription" class="automation-description">The automator will run 0 active tasks (of 0) and will paste each task into the prompt box and wait.</p>
         </div>
       </div>
     `;
@@ -651,6 +752,7 @@ class AutomationManager {
     this.loadSettings();
 
     setTimeout(() => {
+      this.refreshTasks();
       this.checkUrlAndUpdateUI();
     }, 100);
   }

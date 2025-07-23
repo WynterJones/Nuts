@@ -421,12 +421,50 @@ async function handleTaskExecution(data) {
 }
 
 async function executeTaskInBolt(data) {
-  if (data.settings.autoSupabaseMigration) {
-    await handleSupabaseMigration();
+  const migrationButton = findElementByText(
+    "button.bg-bolt-elements-button-supabase-background",
+    "Apply changes"
+  );
+
+  const errorFixButton = findElementByText(
+    "button.bg-bolt-elements-button-primary-background",
+    "Attempt fix"
+  );
+
+  if (migrationButton && !migrationButton.disabled) {
+    if (data.settings.autoSupabaseMigration) {
+      await handleSupabaseMigration();
+    } else {
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_ERROR",
+            error:
+              "Supabase migration detected but auto-migration is disabled. Automation stopped.",
+          },
+          "*"
+        );
+      }
+      return;
+    }
   }
 
-  if (data.settings.autoErrorFix) {
-    await handleErrorFix();
+  if (errorFixButton && !errorFixButton.disabled) {
+    if (data.settings.autoErrorFix) {
+      await handleErrorFix();
+    } else {
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_ERROR",
+            error:
+              "Error detected but auto-fix is disabled. Automation stopped.",
+          },
+          "*"
+        );
+      }
+      return;
+    }
   }
 
   const promptBox = document.querySelector(
@@ -472,6 +510,52 @@ async function executeTaskInBolt(data) {
     },
     waitTime === -1 ? Infinity : waitTime
   );
+
+  const postMigrationButton = findElementByText(
+    "button.bg-bolt-elements-button-supabase-background",
+    "Apply changes"
+  );
+
+  const postErrorFixButton = findElementByText(
+    "button.bg-bolt-elements-button-primary-background",
+    "Attempt fix"
+  );
+
+  if (postMigrationButton && !postMigrationButton.disabled) {
+    if (data.settings.autoSupabaseMigration) {
+      await handleSupabaseMigration();
+    } else {
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_ERROR",
+            error:
+              "Supabase migration detected after task completion but auto-migration is disabled. Automation stopped.",
+          },
+          "*"
+        );
+      }
+      return;
+    }
+  }
+
+  if (postErrorFixButton && !postErrorFixButton.disabled) {
+    if (data.settings.autoErrorFix) {
+      await handleErrorFix();
+    } else {
+      if (assistantIframe) {
+        assistantIframe.contentWindow.postMessage(
+          {
+            type: "AUTOMATION_ERROR",
+            error:
+              "Error detected after task completion but auto-fix is disabled. Automation stopped.",
+          },
+          "*"
+        );
+      }
+      return;
+    }
+  }
 
   if (assistantIframe) {
     assistantIframe.contentWindow.postMessage(

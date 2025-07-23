@@ -493,7 +493,7 @@ body {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--shadow-blue);
+  box-shadow: var(--shadow-blue), inset 0 0 0 1px var(--primary-blue);
 }
 
 .cancel-btn {
@@ -606,6 +606,11 @@ body {
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+
+.todo-checkbox-container .checkmark:after {
+  left: 5px;
+  top: 1px;
 }
 
 .todo-text {
@@ -1211,11 +1216,33 @@ body {
   color: var(--primary-blue);
 }
 
+.automation-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 16px auto 0 auto;
+  line-height: 1.5;
+  padding: 12px 16px;
+  max-width: 420px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
 .automation-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: -23px;
+}
+
+.automation-buttons {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-top: -23px;
 }
 
 /* Automation Messages */
@@ -1597,7 +1624,7 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  box-shadow: var(--shadow-blue);
+  box-shadow: var(--shadow-blue), inset 0 0 0 1px var(--primary-blue);
 }
 
 /* Responsive Design */
@@ -1755,17 +1782,9 @@ body {
 }
 
 /* Automation UI States */
-.automation-running .header,
+.automation-running .header-actions,
 .automation-running .tab-navigation {
   display: none !important;
-}
-
-.automation-running .assistant-container {
-  padding-top: 0;
-}
-
-.automation-running .tab-content {
-  padding-top: 0;
 }
 
 /* Copyright Badge */
