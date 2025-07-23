@@ -59,8 +59,12 @@ class UIManager {
 
   setupDragging() {
     const header = document.querySelector(".header");
-    if (!header) {
-      console.warn("Header element not found for dragging setup");
+    const runningHeader = document.querySelector(".running-header");
+
+    const draggableElements = [header, runningHeader].filter(Boolean);
+
+    if (draggableElements.length === 0) {
+      console.warn("No draggable header elements found");
       return;
     }
 
@@ -68,7 +72,7 @@ class UIManager {
     let lastX = 0;
     let lastY = 0;
 
-    header.addEventListener("mousedown", (e) => {
+    const startDrag = (e) => {
       // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
@@ -80,6 +84,11 @@ class UIManager {
       e.preventDefault();
 
       console.log("✋ Dragging started");
+    };
+
+    // Add mousedown listener to both header elements
+    draggableElements.forEach((element) => {
+      element.addEventListener("mousedown", startDrag);
     });
 
     document.addEventListener("mousemove", (e) => {
