@@ -88,12 +88,9 @@ class BackgroundService {
 
       const useSupabase = message.useSupabase !== false;
 
-      console.log("useSupabase", useSupabase);
       const techStack = useSupabase
         ? "React, Vite, TypeScript, Tailwind CSS, Supabase, Netlify"
         : "React, Vite, TypeScript, Tailwind CSS, Netlify";
-
-      console.log("techStack", techStack);
 
       const databaseSection = useSupabase
         ? "   - **Database & Backend** (Supabase setup, tables, auth, policies)\n   - **Authentication & User Management**\n"
@@ -203,11 +200,6 @@ ${
               };
             }
             updatedProjectData.settings.starterPrompt = generatedStarterPrompt;
-
-            console.log(
-              "Generated starter prompt saved to both global and project settings:",
-              generatedStarterPrompt
-            );
           } catch (error) {
             console.error("Failed to save starter prompt:", error);
           }

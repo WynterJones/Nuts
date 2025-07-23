@@ -225,7 +225,7 @@ class IframeApp {
 
     window.projectManager.loadAllProjects();
 
-    console.log("Nuts for Bolt iframe initialized");
+    console.info("🥜 Nuts for Bolt Assistant loaded.");
   }
 
   loadProjectIcon() {

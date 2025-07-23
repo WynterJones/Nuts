@@ -60,8 +60,6 @@ class ProjectManager {
             this.currentProject &&
             this.projectData
           ) {
-            console.log("Merging AI-generated tasks into existing project");
-
             if (event.data.projectData.todos) {
               this.projectData.todos = [
                 ...this.projectData.todos,
@@ -83,10 +81,6 @@ class ProjectManager {
             }
 
             if (event.data.projectData.settings) {
-              console.log(
-                "Merging AI-generated settings:",
-                event.data.projectData.settings
-              );
               this.projectData.settings = {
                 ...this.projectData.settings,
                 ...event.data.projectData.settings,
@@ -140,26 +134,15 @@ class ProjectManager {
               };
 
               StorageManager.set(`project_${projectId}`, projectData);
-              console.log(
-                `Migrated project ${projectId} to include default settings`
-              );
             }
 
             this.allProjects[projectId] = projectData;
-            console.log(
-              `Loaded project: ${projectId} - ${
-                projectData.title || "Untitled"
-              }`
-            );
           } else {
             this.cleanupInvalidProject(key, projectId);
           }
         }
       });
 
-      console.log(
-        `Total projects loaded: ${Object.keys(this.allProjects).length}`
-      );
       this.renderProjectList();
     } catch (error) {
       console.error("Error loading projects:", error);
@@ -207,10 +190,7 @@ class ProjectManager {
       const veryInvalidIds = ["~", "", "undefined", "null"];
 
       if (veryInvalidIds.includes(projectId)) {
-        console.log(`Cleaning up clearly invalid project: ${storageKey}`);
         await StorageManager.remove(storageKey);
-      } else {
-        console.log(`Keeping potentially recoverable project: ${projectId}`);
       }
     } catch (error) {
       console.error(`Error cleaning up invalid project ${storageKey}:`, error);
@@ -268,14 +248,12 @@ class ProjectManager {
     projectCards.forEach((card) => {
       card.addEventListener("click", () => {
         const projectId = card.getAttribute("data-project-id");
-        console.log("Project card clicked:", projectId);
         this.openProject(projectId);
       });
     });
   }
 
   openProject(projectId) {
-    console.log("Opening project:", projectId);
     this.currentProject = projectId;
     this.projectData = this.allProjects[projectId];
 
@@ -307,8 +285,6 @@ class ProjectManager {
   }
 
   showNewProjectModal() {
-    console.log("Showing new project modal");
-
     const modalContent = `
       <div class="modal-content">
         <div class="modal-header">
@@ -351,14 +327,12 @@ class ProjectManager {
 
     modal.querySelectorAll(".modal-close").forEach((btn) => {
       btn.addEventListener("click", () => {
-        console.log("Closing modal");
         modal.remove();
       });
     });
 
     const createBtn = modal.querySelector("#createProjectBtn");
     createBtn.addEventListener("click", () => {
-      console.log("Create project clicked");
       this.createNewProject();
     });
 
@@ -369,8 +343,6 @@ class ProjectManager {
   }
 
   createNewProject() {
-    console.log("Creating new project");
-
     const titleInput = document.getElementById("newProjectTitle");
     const descriptionInput = document.getElementById("newProjectDescription");
     const useSupabaseInput = document.getElementById("useSupabase");
@@ -383,8 +355,6 @@ class ProjectManager {
     const title = titleInput.value.trim();
     const description = descriptionInput.value.trim();
     const useSupabase = useSupabaseInput.checked;
-
-    console.log("Form data:", { title, description, useSupabase });
 
     if (!title) {
       alert("Please enter a project title");
@@ -439,13 +409,6 @@ class ProjectManager {
         waitTime: 120000,
       },
     };
-
-    console.log(
-      "Creating project with ID:",
-      projectId,
-      "and data:",
-      projectData
-    );
 
     if (this.allProjects[projectId]) {
       console.warn("Project already exists, skipping creation:", projectId);
@@ -542,9 +505,6 @@ class ProjectManager {
     this.hideProcessingState();
 
     window.uiManager.hideModal();
-
-    console.log("Project created successfully:", projectId, projectData.title);
-    console.log("Total projects now:", Object.keys(this.allProjects).length);
 
     this.openProject(projectId);
 
@@ -790,7 +750,6 @@ class ProjectManager {
       });
 
       this.saveProjectData();
-      console.log("Task order updated and saved");
 
       this.renderTodos();
     });
@@ -925,18 +884,6 @@ class ProjectManager {
           `project_${this.currentProject}`,
           this.projectData
         );
-
-        if (success) {
-          console.log(
-            `Project ${this.currentProject} (${this.projectData.title}) saved successfully`
-          );
-          console.log("Project data:", {
-            todos: this.projectData.todos?.length || 0,
-            chatHistory: this.projectData.chatHistory?.length || 0,
-          });
-        } else {
-          console.error(`Failed to save project ${this.currentProject}`);
-        }
 
         window.parent.postMessage(
           {

@@ -3,7 +3,6 @@ let currentProject = null;
 let isButtonInjected = false;
 
 function createButton() {
-  console.log("Creating Nuts for Bolt button...");
   const button = document.createElement("button");
   button.id = "bolt-assistant-btn";
   button.className = `flex items-center text-bolt-elements-item-contentDefault bg-transparent rounded-md 
@@ -17,38 +16,29 @@ function createButton() {
   `;
 
   button.addEventListener("click", () => {
-    console.log("Nuts for Bolt button clicked!");
     toggleAssistant();
   });
 
-  console.log("Button created successfully");
   return button;
 }
 
 function injectButton() {
   if (isButtonInjected) return;
 
-  console.log("Attempting to inject button...");
-
   const targetSelector =
     ".bg-bolt-elements-prompt-background .text-bolt-elements-item-contentDefault";
   const targetElement = document.querySelector(targetSelector);
 
   if (targetElement && targetElement.parentElement) {
-    console.log("Target element found, injecting button");
     const button = createButton();
     targetElement.parentElement.appendChild(button);
     isButtonInjected = true;
-    console.log("Button injected successfully");
   } else {
-    console.log("Target element not found, retrying...");
     setTimeout(injectButton, 1000);
   }
 }
 
 function toggleAssistant() {
-  console.log("Toggle assistant called");
-
   if (assistantIframe) {
     closeAssistant();
   } else {
@@ -57,8 +47,6 @@ function toggleAssistant() {
 }
 
 function openAssistant() {
-  console.log("Opening assistant");
-
   assistantIframe = document.createElement("iframe");
   assistantIframe.src = chrome.runtime.getURL("iframe.html");
   assistantIframe.className = "nuts-assistant-iframe";
@@ -81,8 +69,6 @@ function openAssistant() {
 }
 
 function closeAssistant() {
-  console.log("Closing assistant");
-
   if (assistantIframe) {
     assistantIframe.remove();
     assistantIframe = null;
@@ -95,7 +81,6 @@ function detectProjectChange() {
   const newProject = projectMatch ? projectMatch[1] : "default";
 
   if (newProject !== currentProject) {
-    console.log("Project changed:", newProject);
     currentProject = newProject;
     loadProjectData(newProject);
   }
@@ -136,7 +121,6 @@ async function saveProjectData(projectData) {
     await chrome.storage.local.set({
       [`project_${currentProject}`]: projectData,
     });
-    console.log("Project data saved successfully");
   } catch (error) {
     console.error("Error saving project data:", error);
   }
@@ -146,7 +130,6 @@ window.addEventListener("message", (event) => {
   if (!assistantIframe) return;
 
   const { type } = event.data;
-  console.log("Received message:", type, event.data);
 
   switch (type) {
     case "CLOSE_IFRAME":
@@ -214,15 +197,11 @@ window.addEventListener("message", (event) => {
 
 async function handleChatMessage(message, context) {
   try {
-    console.log("Sending chat message:", message);
-
     const response = await chrome.runtime.sendMessage({
       type: "OPENAI_REQUEST",
       message: message,
       context: context,
     });
-
-    console.log("Received response:", response);
 
     if (assistantIframe) {
       assistantIframe.contentWindow.postMessage(
@@ -254,16 +233,12 @@ async function handleChatMessage(message, context) {
 
 async function handleTaskGeneration(data) {
   try {
-    console.log("Generating tasks for:", data.projectId);
-
     const response = await chrome.runtime.sendMessage({
       type: "GENERATE_TASKS",
       projectData: data.projectData,
       description: data.description,
       useSupabase: data.useSupabase,
     });
-
-    console.log("Task generation response:", response);
 
     if (response?.updatedProjectData) {
       await saveProjectData(response.updatedProjectData);
@@ -314,7 +289,6 @@ let automationState = {
 };
 
 async function handleStartingSequence(settings) {
-  console.log("Executing starting sequence...");
   automationState.isRunning = true;
 
   try {
@@ -330,7 +304,6 @@ async function handleStartingSequence(settings) {
     );
 
     if (textarea) {
-      console.log("Found start button, using starter prompt...");
       const starterPrompt =
         settings.starterPrompt ||
         "Build me a basic web app for react, vite, supabase app.";
@@ -352,7 +325,7 @@ async function handleStartingSequence(settings) {
       const newProjectButton = document.querySelector(
         ".bg-bolt-elements-prompt-background button.absolute"
       );
-      console.log("New project button:", newProjectButton);
+
       if (newProjectButton) {
         newProjectButton.click();
       }
@@ -393,7 +366,6 @@ async function handleStartingSequence(settings) {
 }
 
 async function handleTaskExecution(data) {
-  console.log("Executing task:", data.task.text);
   automationState.isRunning = true;
   automationState.currentTask = data.task;
   automationState.retryCount = 0;
@@ -411,9 +383,6 @@ async function handleTaskExecution(data) {
       const waitTime = data.settings.waitTime || 180000;
       const waitTimeText =
         waitTime === -1 ? "indefinite wait" : `${waitTime / 1000} seconds`;
-      console.log(
-        `Timeout error detected after ${waitTimeText} - stopping automation`
-      );
 
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
@@ -432,9 +401,6 @@ async function handleTaskExecution(data) {
       automationState.retryCount < automationState.maxRetries
     ) {
       automationState.retryCount++;
-      console.log(
-        `Retrying task (attempt ${automationState.retryCount}/${automationState.maxRetries})`
-      );
 
       setTimeout(() => {
         executeTaskInBolt(data);
@@ -471,14 +437,11 @@ async function executeTaskInBolt(data) {
     throw new Error("Could not find AI prompt box on page");
   }
 
-  console.log("Found prompt box:", promptBox);
-
   await waitForCondition(() => !promptBox.disabled, 10000);
 
   promptBox.value = "";
   promptBox.focus();
 
-  console.log("Typing task:", data.task.text, data);
   await typeText(promptBox, data.task.text);
 
   const submitButton = document.querySelector(
@@ -491,15 +454,11 @@ async function executeTaskInBolt(data) {
     );
   }
 
-  console.log("Found the .absolute button, clicking it");
   submitButton.click();
-
-  console.log("Waiting for the .absolute button to disappear...");
 
   const waitTime = data.settings.waitTime || 180000;
   const waitTimeText =
     waitTime === -1 ? "indefinitely" : `${waitTime / 1000} seconds`;
-  console.log(`Using wait time: ${waitTimeText}`);
 
   await waitForCondition(
     () => {
@@ -508,15 +467,10 @@ async function executeTaskInBolt(data) {
       );
       const isGone = !specificButton;
       if (!isGone) {
-        console.log("Button still present, waiting...");
       }
       return isGone;
     },
     waitTime === -1 ? Infinity : waitTime
-  );
-
-  console.log(
-    "✅ The .absolute button disappeared - task processing complete!"
   );
 
   if (assistantIframe) {
@@ -528,8 +482,6 @@ async function executeTaskInBolt(data) {
       "*"
     );
   }
-
-  console.log("🎉 Task execution completed successfully!");
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -550,20 +502,15 @@ async function executeTaskInBolt(data) {
 }
 
 async function handleErrorFix() {
-  console.log("Checking for error fix prompts...");
-
   const errorFixButton = findElementByText(
     "button.bg-bolt-elements-button-primary-background",
     "Attempt fix"
   );
 
   if (errorFixButton && !errorFixButton.disabled) {
-    console.log("Found error fix button, clicking...");
     errorFixButton.click();
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    console.log("Waiting for error fix process to complete...");
 
     await waitForCondition(
       () =>
@@ -580,14 +527,10 @@ async function handleErrorFix() {
         ),
       180000
     );
-
-    console.log("✅ Error fix process completed");
   }
 }
 
 async function handleSupabaseMigration() {
-  console.log("Checking for Supabase migration prompts...");
-
   const migrationButton =
     findElementByText("button", "Run Migration") ||
     findElementByText("button", "migration") ||
@@ -595,7 +538,6 @@ async function handleSupabaseMigration() {
     document.querySelector('button[aria-label*="migration"]');
 
   if (migrationButton && !migrationButton.disabled) {
-    console.log("Found migration button, clicking...");
     migrationButton.click();
 
     await waitForCondition(() => !migrationButton.disabled, 10000);
@@ -603,7 +545,6 @@ async function handleSupabaseMigration() {
 }
 
 function handleStopAutomation() {
-  console.log("Stopping automation...");
   automationState.isRunning = false;
   automationState.currentTask = null;
   automationState.retryCount = 0;
@@ -685,8 +626,5 @@ new MutationObserver(() => {
 }).observe(document, { subtree: true, childList: true });
 
 setTimeout(() => {
-  console.log("Initializing Nuts for Bolt assistant...");
   injectButton();
 }, 1000);
-
-console.log("Nuts for Bolt content script loaded");

@@ -190,7 +190,6 @@ class ChatManager {
       this.chatMessages.appendChild(defaultSystemMessage);
     }
 
-    console.log("projectData", projectData);
     if (projectData?.chatHistory) {
       if (projectData.chatHistory[0].role === "user") {
         projectData.chatHistory.shift();

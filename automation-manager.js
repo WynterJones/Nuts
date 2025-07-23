@@ -86,7 +86,6 @@ class AutomationManager {
   async saveSettings() {
     try {
       await StorageManager.set("automation_settings", this.settings);
-      console.log("Automation settings saved:", this.settings);
     } catch (error) {
       console.error("Error saving automation settings:", error);
     }
@@ -102,7 +101,6 @@ class AutomationManager {
   async startAutomation() {
     if (this.isRunning) return;
 
-    console.log("Starting automation sequence...");
     this.isRunning = true;
     this.currentTaskIndex = 0;
 
@@ -115,7 +113,6 @@ class AutomationManager {
 
     try {
       const currentUrl = await this.getCurrentUrl();
-      console.log("Current URL:", currentUrl);
 
       if (
         currentUrl === "https://bolt.new" ||
@@ -158,7 +155,6 @@ class AutomationManager {
   async checkUrlAndUpdateUI() {
     try {
       const currentUrl = await this.getCurrentUrl();
-      console.log("Checking URL for automation UI:", currentUrl);
 
       const isRootDomain =
         currentUrl === "https://bolt.new" || currentUrl === "https://bolt.new/";
@@ -336,15 +332,6 @@ class AutomationManager {
     const firstTask = this.tasks[firstIncompleteIndex];
     const incompleteTasks = this.tasks.filter((task) => !task.completed);
 
-    console.log(`Total tasks: ${this.tasks.length}`);
-    console.log(
-      `Found ${incompleteTasks.length} incomplete tasks:`,
-      incompleteTasks.map((t) => t.text)
-    );
-    console.log(
-      `Starting with task: "${firstTask.text}" (index ${firstIncompleteIndex} in original order)`
-    );
-
     await this.executeTask(firstTask, firstIncompleteIndex, this.tasks.length);
   }
 
@@ -358,8 +345,6 @@ class AutomationManager {
     this.updateStatus(
       `Running task ${index + 1}/${total}: ${task.text.substring(0, 50)}...`
     );
-
-    console.log("Executing task:", task.text);
 
     const appSettings = window.settingsManager
       ? window.settingsManager.getSettings()
@@ -386,15 +371,12 @@ class AutomationManager {
   handleStepComplete(data) {
     if (!this.isRunning) return;
 
-    console.log("Step completed:", data);
-
     if (data.taskIndex !== undefined) {
       if (data.task && data.task.id) {
         const task = this.tasks.find((t) => t.id === data.task.id);
         if (task) {
           task.completed = true;
           task.completedAt = new Date().toISOString();
-          console.log(`Marked task ${task.id} as completed:`, task.text);
 
           if (window.projectManager && window.projectManager.projectData) {
             const projectTask = window.projectManager.projectData.todos.find(
@@ -405,7 +387,6 @@ class AutomationManager {
               projectTask.completedAt = new Date().toISOString();
               window.projectManager.saveProjectData();
               window.projectManager.renderTodos();
-              console.log("Updated task in project manager UI");
             }
           }
         }
@@ -416,17 +397,9 @@ class AutomationManager {
       );
 
       const incompleteTasks = this.tasks.filter((task) => !task.completed);
-      console.log(
-        `${incompleteTasks.length} tasks remaining:`,
-        incompleteTasks.map((t) => t.text)
-      );
 
       if (nextIncompleteIndex !== -1) {
         const nextTask = this.tasks[nextIncompleteIndex];
-
-        console.log(
-          `Next task: "${nextTask.text}" (index ${nextIncompleteIndex} in original order)`
-        );
 
         if (this.settings.autoContinue) {
           this.updateStatus("Waiting before next task...");
@@ -461,7 +434,6 @@ class AutomationManager {
   }
 
   stopAutomation() {
-    console.log("Stopping automation...");
     this.isRunning = false;
     this.currentTaskIndex = 0;
 
@@ -483,7 +455,6 @@ class AutomationManager {
     if (this.automationStatusText) {
       this.automationStatusText.textContent = message;
     }
-    console.log("Automation status:", message);
   }
 
   onTaskCompleted(taskId) {
@@ -510,10 +481,6 @@ class AutomationManager {
 
     const completedTasks = this.tasks.filter((t) => t.completed).length;
     const taskProgress = completedTasks + 1;
-
-    console.log(
-      `Showing running UI: Task ${taskProgress} of ${totalTasks} - "${currentTask.text}"`
-    );
 
     automationTab.innerHTML = `
       <div class="running-automation-container">

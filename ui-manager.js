@@ -77,8 +77,6 @@ class UIManager {
 
       document.body.style.userSelect = "none";
       e.preventDefault();
-
-      console.log("✋ Dragging started");
     };
 
     draggableElements.forEach((element) => {
@@ -108,7 +106,6 @@ class UIManager {
       if (isDragging) {
         isDragging = false;
         document.body.style.userSelect = "";
-        console.log("✋ Dragging ended");
       }
     };
 
@@ -117,7 +114,6 @@ class UIManager {
   }
 
   switchTab(tabName) {
-    console.log("Switching to tab:", tabName);
     this.currentTab = tabName;
 
     this.tabBtns.forEach((btn) => {

@@ -48,10 +48,8 @@ class SettingsManager {
       ) {
         window.projectManager.projectData.settings = { ...this.settings };
         window.projectManager.saveProjectData();
-        console.log("Project settings saved:", this.settings);
       } else {
         await StorageManager.set("app_settings", this.settings);
-        console.log("Global settings saved:", this.settings);
       }
       this.showSaveSuccess();
     } catch (error) {
@@ -80,7 +78,6 @@ class SettingsManager {
       }
     }
     this.updateUI();
-    console.log("Loaded project settings:", this.settings);
   }
 
   updateUI() {
@@ -277,7 +274,6 @@ class SettingsManager {
         if (newTitle && newTitle !== window.projectManager.projectData.title) {
           window.projectManager.projectData.title = newTitle;
           window.projectManager.saveProjectData();
-          console.log("Project title updated:", newTitle);
 
           if (window.uiManager) {
             window.uiManager.updateProjectHeader(
@@ -319,7 +315,6 @@ class SettingsManager {
           if (newTitle !== window.projectManager.projectData.title) {
             window.projectManager.projectData.title = newTitle;
             window.projectManager.saveProjectData();
-            console.log("Project title auto-saved:", newTitle);
 
             if (window.uiManager) {
               window.uiManager.updateProjectHeader(
