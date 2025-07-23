@@ -1,4 +1,3 @@
-// UI Manager - handles tabs, dragging, and UI state
 class UIManager {
   constructor() {
     this.currentTab = "tasks";
@@ -20,7 +19,6 @@ class UIManager {
   }
 
   setupEventListeners() {
-    // Tab switching
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
@@ -28,7 +26,6 @@ class UIManager {
       });
     });
 
-    // Header buttons
     this.closeBtn.addEventListener("click", () => {
       window.parent.postMessage({ type: "CLOSE_IFRAME" }, "*");
     });
@@ -43,7 +40,6 @@ class UIManager {
       }
     });
 
-    // Event listeners
     eventBus.on("project:loaded", (projectData) => {
       this.updateProjectHeader(projectData);
       this.showMainView();
@@ -73,7 +69,6 @@ class UIManager {
     let lastY = 0;
 
     const startDrag = (e) => {
-      // Don't drag if clicking on buttons
       if (e.target.closest("button")) return;
 
       isDragging = true;
@@ -86,7 +81,6 @@ class UIManager {
       console.log("✋ Dragging started");
     };
 
-    // Add mousedown listener to both header elements
     draggableElements.forEach((element) => {
       element.addEventListener("mousedown", startDrag);
     });
@@ -126,13 +120,11 @@ class UIManager {
     console.log("Switching to tab:", tabName);
     this.currentTab = tabName;
 
-    // Update tab buttons
     this.tabBtns.forEach((btn) => {
       const isActive = btn.dataset.tab === tabName;
       btn.classList.toggle("active", isActive);
     });
 
-    // Update tab panes
     this.tabPanes.forEach((pane) => {
       const isActive = pane.id === `${tabName}Tab`;
       pane.classList.toggle("hidden", !isActive);
@@ -150,7 +142,6 @@ class UIManager {
     this.projectListView.classList.remove("hidden");
     this.mainProjectView.classList.add("hidden");
 
-    // Update header for projects view
     this.projectName.textContent = "Nuts for Bolt";
     this.backBtn.classList.add("hidden");
     this.deleteProjectBtn.classList.add("hidden");
@@ -162,11 +153,10 @@ class UIManager {
     this.projectListView.classList.add("hidden");
     this.mainProjectView.classList.remove("hidden");
 
-    // Update header for project view
     this.backBtn.classList.remove("hidden");
     this.deleteProjectBtn.classList.remove("hidden");
 
-    this.switchTab("chat"); // Default to chat tab
+    this.switchTab("chat");
     eventBus.emit("view:mainProject");
   }
 
@@ -209,7 +199,6 @@ class UIManager {
     modal.innerHTML = content;
     document.body.appendChild(modal);
 
-    // Close on overlay click
     modal.addEventListener("click", (e) => {
       if (e.target === modal) {
         modal.remove();
@@ -227,5 +216,4 @@ class UIManager {
   }
 }
 
-// Make UIManager globally available
 window.UIManager = UIManager;

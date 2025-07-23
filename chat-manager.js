@@ -1,4 +1,3 @@
-// Chat Manager - handles AI conversations and message display
 class ChatManager {
   constructor() {
     this.isTyping = false;
@@ -25,7 +24,6 @@ class ChatManager {
 
     this.chatInput.addEventListener("input", () => this.handleInputResize());
 
-    // Listen to events
     eventBus.on("project:loaded", (projectData) =>
       this.renderChatHistory(projectData)
     );
@@ -36,7 +34,6 @@ class ChatManager {
       }
     });
 
-    // Message listener for AI responses
     window.addEventListener("message", (event) => {
       const { type, response, error, functionCalls } = event.data;
 
@@ -61,7 +58,6 @@ class ChatManager {
     this.handleInputResize();
     this.showTyping();
 
-    // Get current project data for context
     const projectData = window.projectManager?.projectData;
     const context = {
       project: window.projectManager?.currentProject,
@@ -87,7 +83,6 @@ class ChatManager {
       return;
     }
 
-    // Handle function calls from AI
     if (functionCalls && functionCalls.length > 0) {
       functionCalls.forEach((call) => {
         eventBus.emit("ai:function", call);
@@ -107,7 +102,6 @@ class ChatManager {
       timestamp: new Date().toISOString(),
     };
 
-    // Add to project data
     const projectData = window.projectManager?.projectData;
     if (projectData) {
       if (!projectData.chatHistory) {
@@ -175,15 +169,12 @@ class ChatManager {
   }
 
   renderChatHistory(projectData) {
-    // Clear messages except system message
     const systemMessage = this.chatMessages.querySelector(".system-message");
     this.chatMessages.innerHTML = "";
 
-    // Re-add system message
     if (systemMessage) {
       this.chatMessages.appendChild(systemMessage);
     } else {
-      // Create default system message if it doesn't exist
       const defaultSystemMessage = document.createElement("div");
       defaultSystemMessage.className =
         "message system-message flex justify-center mb-4";
@@ -200,9 +191,7 @@ class ChatManager {
     }
 
     console.log("projectData", projectData);
-    // Render chat history, but filter out the initial project description message
     if (projectData?.chatHistory) {
-      // remmove first message if it's the initial project description message
       if (projectData.chatHistory[0].role === "user") {
         projectData.chatHistory.shift();
       }
@@ -247,7 +236,6 @@ class ChatManager {
   }
 
   clearChatDisplay() {
-    // Keep only the system message
     const systemMessage = this.chatMessages.querySelector(".system-message");
     this.chatMessages.innerHTML = "";
 
@@ -257,5 +245,4 @@ class ChatManager {
   }
 }
 
-// Make ChatManager globally available
 window.ChatManager = ChatManager;

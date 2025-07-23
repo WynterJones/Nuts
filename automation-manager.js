@@ -1,4 +1,3 @@
-// Automation Manager - handles automation settings and execution
 class AutomationManager {
   constructor() {
     this.isRunning = false;
@@ -29,7 +28,6 @@ class AutomationManager {
   }
 
   setupEventListeners() {
-    // Settings toggles
     this.autoSupabaseMigrationToggle.addEventListener("change", (e) => {
       this.settings.autoSupabaseMigration = e.target.checked;
       this.saveSettings();
@@ -45,7 +43,6 @@ class AutomationManager {
       this.saveSettings();
     });
 
-    // Automation controls
     this.runAutomationBtn.addEventListener("click", () =>
       this.startAutomation()
     );
@@ -53,19 +50,16 @@ class AutomationManager {
       this.stopAutomation()
     );
 
-    // Listen for project changes
     eventBus.on("project:loaded", (projectData) => {
       this.tasks = projectData.todos || [];
     });
 
-    // Listen for tab changes to update UI based on URL
     eventBus.on("tab:changed", (tab) => {
       if (tab === "automation") {
         this.checkUrlAndUpdateUI();
       }
     });
 
-    // Listen for responses from content script
     window.addEventListener("message", (event) => {
       if (event.data.type === "AUTOMATION_STEP_COMPLETE") {
         this.handleStepComplete(event.data);
@@ -112,17 +106,14 @@ class AutomationManager {
     this.isRunning = true;
     this.currentTaskIndex = 0;
 
-    // Add automation-running class to hide header and tabs
     document.body.classList.add("automation-running");
 
-    // Update UI
     this.runAutomationBtn.classList.add("hidden");
     this.stopAutomationBtn.classList.remove("hidden");
     this.automationProgress.classList.remove("hidden");
     this.updateStatus("Initializing...");
 
     try {
-      // Check current URL and determine sequence
       const currentUrl = await this.getCurrentUrl();
       console.log("Current URL:", currentUrl);
 
@@ -130,10 +121,8 @@ class AutomationManager {
         currentUrl === "https://bolt.new" ||
         currentUrl === "https://bolt.new/"
       ) {
-        // Run starting sequence
         await this.runStartingSequence();
       } else if (currentUrl.includes("bolt.new/~/")) {
-        // Run task sequence - only on project URLs with ~/
         await this.runTaskSequence();
       } else {
         throw new Error(
@@ -185,7 +174,7 @@ class AutomationManager {
       }
     } catch (error) {
       console.error("Error checking URL:", error);
-      this.showNormalAutomationUI(); // Fallback to normal UI
+      this.showNormalAutomationUI();
     }
   }
 
@@ -195,13 +184,11 @@ class AutomationManager {
     this.runAutomationBtn.disabled = true;
     this.runAutomationBtn.classList.add("disabled");
 
-    // Hide automation settings since they're not relevant for starting sequence
     const settingsGroup = document.querySelector(".setting-group");
     if (settingsGroup) {
       settingsGroup.style.display = "none";
     }
 
-    // Add message if it doesn't exist
     let messageDiv = document.getElementById("startingPromptMessage");
     if (!messageDiv) {
       messageDiv = document.createElement("div");
@@ -229,7 +216,6 @@ class AutomationManager {
         </div>
       `;
 
-      // Insert before the controls
       const controlsDiv = document.querySelector(".automation-controls");
       if (controlsDiv) {
         controlsDiv.parentNode.insertBefore(messageDiv, controlsDiv);
@@ -246,7 +232,6 @@ class AutomationManager {
     this.runAutomationBtn.disabled = false;
     this.runAutomationBtn.classList.remove("disabled");
 
-    // Show automation settings since they're relevant for task automation
     const settingsGroup = document.querySelector(".setting-group");
     if (settingsGroup) {
       settingsGroup.style.display = "flex";
@@ -262,13 +247,11 @@ class AutomationManager {
     this.runAutomationBtn.disabled = true;
     this.runAutomationBtn.classList.add("disabled");
 
-    // Hide automation settings since they're not relevant for unsupported URLs
     const settingsGroup = document.querySelector(".setting-group");
     if (settingsGroup) {
       settingsGroup.style.display = "none";
     }
 
-    // Add message if it doesn't exist
     let messageDiv = document.getElementById("unsupportedUrlMessage");
     if (!messageDiv) {
       messageDiv = document.createElement("div");
@@ -290,7 +273,6 @@ class AutomationManager {
         </div>
       `;
 
-      // Insert before the controls
       const controlsDiv = document.querySelector(".automation-controls");
       if (controlsDiv) {
         controlsDiv.parentNode.insertBefore(messageDiv, controlsDiv);
@@ -318,13 +300,11 @@ class AutomationManager {
   async runStartingSequence() {
     this.updateStatus("Running starting sequence...");
 
-    // Get current settings including starter prompt
     const appSettings = window.settingsManager
       ? window.settingsManager.getSettings()
       : {};
     const combinedSettings = { ...this.settings, ...appSettings };
 
-    // Send message to content script to handle starting sequence
     window.parent.postMessage(
       {
         type: "RUN_STARTING_SEQUENCE",
@@ -343,7 +323,6 @@ class AutomationManager {
       return;
     }
 
-    // Find the first incomplete task in the original order
     const firstIncompleteIndex = this.tasks.findIndex(
       (task) => !task.completed
     );
@@ -374,7 +353,6 @@ class AutomationManager {
 
     this.currentTaskIndex = index;
 
-    // Show running automation UI
     this.showRunningAutomationUI(task, index, total);
 
     this.updateStatus(
@@ -383,19 +361,16 @@ class AutomationManager {
 
     console.log("Executing task:", task.text);
 
-    // Get current settings including append prompt
     const appSettings = window.settingsManager
       ? window.settingsManager.getSettings()
       : {};
     const combinedSettings = { ...this.settings, ...appSettings };
 
-    // Modify task text to include append prompt if specified
     let taskText = task.text;
     if (appSettings.appendPrompt && appSettings.appendPrompt.trim()) {
       taskText = `${task.text}\n\n${appSettings.appendPrompt}`;
     }
 
-    // Send task to content script for execution
     window.parent.postMessage(
       {
         type: "EXECUTE_TASK",
@@ -414,7 +389,6 @@ class AutomationManager {
     console.log("Step completed:", data);
 
     if (data.taskIndex !== undefined) {
-      // Mark the current task as completed if we have task data
       if (data.task && data.task.id) {
         const task = this.tasks.find((t) => t.id === data.task.id);
         if (task) {
@@ -422,7 +396,6 @@ class AutomationManager {
           task.completedAt = new Date().toISOString();
           console.log(`Marked task ${task.id} as completed:`, task.text);
 
-          // Update the ProjectManager's task list so UI updates
           if (window.projectManager && window.projectManager.projectData) {
             const projectTask = window.projectManager.projectData.todos.find(
               (t) => t.id === task.id
@@ -438,7 +411,6 @@ class AutomationManager {
         }
       }
 
-      // Find the next incomplete task in the original order
       const nextIncompleteIndex = this.tasks.findIndex(
         (task, index) => index > data.taskIndex && !task.completed
       );
@@ -457,13 +429,11 @@ class AutomationManager {
         );
 
         if (this.settings.autoContinue) {
-          // Continue to next task with longer delay to ensure page stability
           this.updateStatus("Waiting before next task...");
           setTimeout(() => {
             this.executeTask(nextTask, nextIncompleteIndex, this.tasks.length);
-          }, 5000); // Wait 5 seconds between tasks for page to fully stabilize
+          }, 5000);
         } else {
-          // Auto-continue is disabled, wait for user to click next
           this.currentTaskIndex = nextIncompleteIndex;
           this.updateStatus("Task completed. Click 'Next Task' to continue.");
           this.showNextTaskButton(
@@ -473,14 +443,12 @@ class AutomationManager {
           );
         }
       } else {
-        // All tasks completed
         this.updateStatus("All tasks completed!");
         setTimeout(() => {
           this.stopAutomation();
         }, 2000);
       }
     } else if (data.sequenceType === "starting") {
-      // Starting sequence completed
       this.updateStatus("Starting sequence completed");
       setTimeout(() => this.stopAutomation(), 1000);
     }
@@ -497,13 +465,10 @@ class AutomationManager {
     this.isRunning = false;
     this.currentTaskIndex = 0;
 
-    // Remove automation-running class
     document.body.classList.remove("automation-running");
 
-    // Restore original automation tab
     this.restoreAutomationTab();
 
-    // Notify content script to stop
     window.parent.postMessage(
       {
         type: "STOP_AUTOMATION",
@@ -521,10 +486,8 @@ class AutomationManager {
     console.log("Automation status:", message);
   }
 
-  // Handle automation events from other components
   onTaskCompleted(taskId) {
     if (this.isRunning && this.settings.autoContinue) {
-      // Mark task as completed in our local copy
       const task = this.tasks.find((t) => t.id === taskId);
       if (task) {
         task.completed = true;
@@ -542,13 +505,11 @@ class AutomationManager {
   }
 
   showRunningAutomationUI(currentTask, currentIndex, totalTasks) {
-    // Hide normal automation tab content and show running UI
     const automationTab = document.getElementById("automationTab");
     if (!automationTab) return;
 
-    // Calculate progress: how many tasks have been completed + 1 for current
     const completedTasks = this.tasks.filter((t) => t.completed).length;
-    const taskProgress = completedTasks + 1; // +1 for the current task being executed
+    const taskProgress = completedTasks + 1;
 
     console.log(
       `Showing running UI: Task ${taskProgress} of ${totalTasks} - "${currentTask.text}"`
@@ -597,7 +558,6 @@ class AutomationManager {
       </div>
     `;
 
-    // Setup event listeners
     const stopBtn = document.getElementById("stopRunningBtn");
     const nextBtn = document.getElementById("nextTaskBtn");
 
@@ -609,7 +569,6 @@ class AutomationManager {
       nextBtn.addEventListener("click", () => this.executeNextTask());
     }
 
-    // Update the status text element reference
     this.automationStatusText = document.getElementById("runningStatusText");
   }
 
@@ -623,7 +582,6 @@ class AutomationManager {
   }
 
   executeNextTask(task, index, total) {
-    // Hide next button and continue with task
     const nextBtn = document.getElementById("nextTaskBtn");
     if (nextBtn) {
       nextBtn.classList.add("hidden");
@@ -632,7 +590,6 @@ class AutomationManager {
     if (task && index !== undefined && total) {
       this.executeTask(task, index, total);
     } else {
-      // Find the next incomplete task in the original order
       const nextIncompleteIndex = this.tasks.findIndex(
         (task, index) => index > this.currentTaskIndex && !task.completed
       );
@@ -648,7 +605,6 @@ class AutomationManager {
   }
 
   restoreAutomationTab() {
-    // Restore the original automation tab content
     const automationTab = document.getElementById("automationTab");
     if (!automationTab) return;
 
@@ -702,17 +658,14 @@ class AutomationManager {
       </div>
     `;
 
-    // Re-initialize elements and event listeners
     this.initElements();
     this.setupEventListeners();
     this.loadSettings();
 
-    // Check URL and update UI state
     setTimeout(() => {
       this.checkUrlAndUpdateUI();
     }, 100);
   }
 }
 
-// Make AutomationManager globally available
 window.AutomationManager = AutomationManager;

@@ -1,4 +1,3 @@
-// Settings Manager - handles application settings
 class SettingsManager {
   constructor() {
     this.settings = {};
@@ -7,28 +6,24 @@ class SettingsManager {
   }
 
   setupEventListeners() {
-    // Listen for tab changes to render settings when settings tab is active
     eventBus.on("tab:changed", (tab) => {
       if (tab === "settings") {
         this.renderSettings();
       }
     });
 
-    // Listen for project changes to load project-specific settings
     eventBus.on("project:loaded", (projectData) => {
       this.loadProjectSettings(projectData);
     });
   }
 
   async init() {
-    // Set default settings
     this.settings = {
       starterPrompt: "Build me a basic web app for react, vite, supabase app.",
       appendPrompt: "",
-      waitTime: 120000, // Default wait time in milliseconds (1 minute)
+      waitTime: 120000,
     };
 
-    // Load settings from storage
     await this.loadSettings();
   }
 
@@ -46,7 +41,6 @@ class SettingsManager {
 
   async saveSettings() {
     try {
-      // If we have a current project, save to project settings instead of global
       if (
         window.projectManager &&
         window.projectManager.currentProject &&
@@ -56,7 +50,6 @@ class SettingsManager {
         window.projectManager.saveProjectData();
         console.log("Project settings saved:", this.settings);
       } else {
-        // Fallback to global settings if no project is active
         await StorageManager.set("app_settings", this.settings);
         console.log("Global settings saved:", this.settings);
       }
@@ -69,13 +62,11 @@ class SettingsManager {
 
   loadProjectSettings(projectData) {
     if (projectData && projectData.settings) {
-      // Load project-specific settings
       this.settings = {
         ...this.settings,
         ...projectData.settings,
       };
     } else {
-      // Use default settings if project doesn't have settings yet
       this.settings = {
         starterPrompt:
           "Build me a basic web app for react, vite, supabase app.",
@@ -83,7 +74,6 @@ class SettingsManager {
         waitTime: 120000,
       };
 
-      // Save default settings to the project
       if (projectData && window.projectManager) {
         projectData.settings = { ...this.settings };
         window.projectManager.saveProjectData();
@@ -94,7 +84,6 @@ class SettingsManager {
   }
 
   updateUI() {
-    // Only update UI if elements exist (settings tab has been rendered)
     const starterPromptInput = document.getElementById("starterPromptInput");
     const appendPromptInput = document.getElementById("appendPromptInput");
 
@@ -149,14 +138,11 @@ class SettingsManager {
     }, 2000);
   }
 
-  // Debounced save function
   debouncedSave = CoreUtils.debounce(() => {
     this.saveSettings();
   }, 1000);
 
-  // Get current settings
   getSettings() {
-    // Always return current project settings if available
     if (
       window.projectManager &&
       window.projectManager.projectData &&
@@ -167,7 +153,6 @@ class SettingsManager {
     return { ...this.settings };
   }
 
-  // Get starter prompt for automation
   getStarterPrompt() {
     return (
       this.settings.starterPrompt ||
@@ -175,17 +160,14 @@ class SettingsManager {
     );
   }
 
-  // Get append prompt for tasks
   getAppendPrompt() {
     return this.settings.appendPrompt || "";
   }
 
-  // Get wait time in milliseconds
   getWaitTime() {
     return this.settings.waitTime || 120000;
   }
 
-  // Show save confirmation
   showSaveConfirmation() {
     const saveBtn = document.getElementById("saveSettingsBtn");
     if (saveBtn) {
@@ -199,7 +181,6 @@ class SettingsManager {
     }
   }
 
-  // Refresh settings from storage (useful when AI generates new starter prompt)
   async refreshSettings() {
     await this.loadSettings();
   }
@@ -208,13 +189,11 @@ class SettingsManager {
     const settingsContent = document.getElementById("settingsContent");
     if (!settingsContent) return;
 
-    // Get current project title
     const currentProjectTitle =
       window.projectManager && window.projectManager.projectData
         ? window.projectManager.projectData.title || ""
         : "";
 
-    // Check if we have a current project
     const hasCurrentProject =
       window.projectManager && window.projectManager.currentProject;
 
@@ -282,7 +261,6 @@ class SettingsManager {
       </div>
     `;
 
-    // Setup event listeners
     const saveBtn = document.getElementById("saveSettingsBtn");
     const projectTitleInput = document.getElementById("projectTitleInput");
     const starterPromptInput = document.getElementById("starterPromptInput");
@@ -290,7 +268,6 @@ class SettingsManager {
     const waitTimeSelect = document.getElementById("waitTimeSelect");
 
     saveBtn.addEventListener("click", () => {
-      // Save project title separately
       if (
         projectTitleInput &&
         window.projectManager &&
@@ -302,7 +279,6 @@ class SettingsManager {
           window.projectManager.saveProjectData();
           console.log("Project title updated:", newTitle);
 
-          // Update UI to reflect the new title
           if (window.uiManager) {
             window.uiManager.updateProjectHeader(
               window.projectManager.projectData
@@ -311,7 +287,6 @@ class SettingsManager {
         }
       }
 
-      // Save settings
       this.settings.starterPrompt = starterPromptInput.value;
       this.settings.appendPrompt = appendPromptInput.value;
       this.settings.waitTime = parseInt(waitTimeSelect.value);
@@ -319,7 +294,6 @@ class SettingsManager {
       this.showSaveConfirmation();
     });
 
-    // Auto-save on input changes
     const settingsInputs = [
       starterPromptInput,
       appendPromptInput,
@@ -334,7 +308,6 @@ class SettingsManager {
       });
     });
 
-    // Auto-save project title on change
     if (projectTitleInput) {
       projectTitleInput.addEventListener("change", () => {
         const newTitle = projectTitleInput.value.trim();
@@ -348,7 +321,6 @@ class SettingsManager {
             window.projectManager.saveProjectData();
             console.log("Project title auto-saved:", newTitle);
 
-            // Update UI to reflect the new title
             if (window.uiManager) {
               window.uiManager.updateProjectHeader(
                 window.projectManager.projectData
@@ -361,5 +333,4 @@ class SettingsManager {
   }
 }
 
-// Make SettingsManager globally available
 window.SettingsManager = SettingsManager;

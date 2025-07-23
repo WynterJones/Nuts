@@ -1,4 +1,3 @@
-// Iframe main entry point
 class IframeApp {
   constructor() {
     this.checkApiKeyAndInitialize();
@@ -6,7 +5,6 @@ class IframeApp {
 
   async checkApiKeyAndInitialize() {
     try {
-      // Check if OpenAI API key exists
       const apiKey = await StorageManager.get("openai_api_key");
 
       if (!apiKey) {
@@ -24,7 +22,6 @@ class IframeApp {
     const appContainer = document.querySelector(".assistant-container");
 
     if (appContainer) {
-      // Load existing model selection
       const existingModel =
         (await StorageManager.get("openai_model")) || "gpt-4o-mini";
 
@@ -81,7 +78,6 @@ class IframeApp {
         </div>
       `;
 
-      // Load the project icon
       const gateIcon = document.getElementById("gateIcon");
       if (gateIcon) {
         gateIcon.src = chrome.runtime.getURL("icon/128.png");
@@ -183,7 +179,6 @@ class IframeApp {
     }
 
     try {
-      // Save to Chrome storage
       const success = await StorageManager.set("openai_api_key", apiKey);
       await StorageManager.set("openai_model", model);
 
@@ -194,7 +189,6 @@ class IframeApp {
           statusDiv
         );
 
-        // Wait a moment then initialize the app
         setTimeout(() => {
           this.initializeApp();
         }, 1500);
@@ -215,25 +209,20 @@ class IframeApp {
   }
 
   initializeApp() {
-    // Load the project icon
     this.loadProjectIcon();
 
-    // Reset the container to original state
     const appContainer = document.querySelector(".assistant-container");
     if (appContainer && appContainer.innerHTML.includes("api-key-gate")) {
-      // Reload the original iframe HTML
       window.location.reload();
       return;
     }
 
-    // Initialize all managers
     window.uiManager = new UIManager();
     window.projectManager = new ProjectManager();
     window.chatManager = new ChatManager();
     window.automationManager = new AutomationManager();
     window.settingsManager = new SettingsManager();
 
-    // Load initial project list
     window.projectManager.loadAllProjects();
 
     console.log("Nuts for Bolt iframe initialized");
@@ -247,7 +236,6 @@ class IframeApp {
   }
 }
 
-// Initialize the app when DOM is loaded
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     new IframeApp();

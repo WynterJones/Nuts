@@ -34,7 +34,6 @@ class CoreUtils {
   }
 }
 
-// Event system for communication between modules
 class EventBus {
   constructor() {
     this.events = {};
@@ -60,7 +59,6 @@ class EventBus {
   }
 }
 
-// Storage wrapper for easy data management
 class StorageManager {
   static async get(key) {
     try {
@@ -102,9 +100,7 @@ class StorageManager {
   }
 }
 
-// Global event bus instance
 window.eventBus = new EventBus();
 
-// Make utilities globally available
 window.CoreUtils = CoreUtils;
 window.StorageManager = StorageManager;

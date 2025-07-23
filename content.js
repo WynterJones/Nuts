@@ -142,7 +142,6 @@ async function saveProjectData(projectData) {
   }
 }
 
-// Message listener for iframe communication
 window.addEventListener("message", (event) => {
   if (!assistantIframe) return;
 
@@ -167,7 +166,6 @@ window.addEventListener("message", (event) => {
       break;
 
     case "GET_CURRENT_URL":
-      // Send current URL back to iframe
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
           {
@@ -199,7 +197,6 @@ window.addEventListener("message", (event) => {
         let newLeft = rect.left + deltaX;
         let newTop = rect.top + deltaY;
 
-        // Basic bounds checking
         const maxLeft = window.innerWidth - assistantIframe.offsetWidth;
         const maxTop = window.innerHeight - assistantIframe.offsetHeight;
 
@@ -309,7 +306,6 @@ async function handleTaskGeneration(data) {
   }
 }
 
-// Automation handling functions
 let automationState = {
   isRunning: false,
   currentTask: null,
@@ -322,7 +318,6 @@ async function handleStartingSequence(settings) {
   automationState.isRunning = true;
 
   try {
-    // Check if we're on bolt.new root
     if (
       window.location.href !== "https://bolt.new" &&
       window.location.href !== "https://bolt.new/"
@@ -330,7 +325,6 @@ async function handleStartingSequence(settings) {
       throw new Error("Starting sequence can only run on https://bolt.new");
     }
 
-    // Look for new project button or similar starting action
     const textarea = document.querySelector(
       ".bg-bolt-elements-prompt-background textarea"
     );
@@ -351,22 +345,17 @@ async function handleStartingSequence(settings) {
           bubbles: true,
         })
       );
-      // trigger change event
       textarea.dispatchEvent(new Event("change", { bubbles: true }));
 
-      // delay for 1 second
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // look for .bg-bolt-elements-prompt-background  button.absolute
       const newProjectButton = document.querySelector(
         ".bg-bolt-elements-prompt-background button.absolute"
       );
       console.log("New project button:", newProjectButton);
-      // cllick
       if (newProjectButton) {
         newProjectButton.click();
       }
-      // Wait for navigation or modal
       await waitForCondition(() => {
         return (
           window.location.href !== "https://bolt.new" ||
@@ -375,7 +364,6 @@ async function handleStartingSequence(settings) {
         );
       }, 5000);
 
-      // Notify completion
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
           {
@@ -415,12 +403,10 @@ async function handleTaskExecution(data) {
   } catch (error) {
     console.error("Task execution error:", error);
 
-    // Check if this is a timeout error (button waiting)
     const isTimeoutError =
       error.message.includes("Condition not met within") ||
       error.message.includes("timeout");
 
-    // Don't retry timeout errors - they usually mean the task completed but button behavior was different
     if (isTimeoutError) {
       const waitTime = data.settings.waitTime || 180000;
       const waitTimeText =
@@ -429,7 +415,6 @@ async function handleTaskExecution(data) {
         `Timeout error detected after ${waitTimeText} - stopping automation`
       );
 
-      // Stop automation instead of continuing
       if (assistantIframe) {
         assistantIframe.contentWindow.postMessage(
           {
@@ -442,7 +427,6 @@ async function handleTaskExecution(data) {
       return;
     }
 
-    // Handle other error retries if enabled
     if (
       data.settings.autoErrorFix &&
       automationState.retryCount < automationState.maxRetries
@@ -452,14 +436,12 @@ async function handleTaskExecution(data) {
         `Retrying task (attempt ${automationState.retryCount}/${automationState.maxRetries})`
       );
 
-      // Wait a bit before retry
       setTimeout(() => {
         executeTaskInBolt(data);
       }, 3000);
       return;
     }
 
-    // Max retries reached or no auto error fix
     if (assistantIframe) {
       assistantIframe.contentWindow.postMessage(
         {
@@ -473,7 +455,6 @@ async function handleTaskExecution(data) {
 }
 
 async function executeTaskInBolt(data) {
-  // Handle Supabase migration if enabled
   if (data.settings.autoSupabaseMigration) {
     await handleSupabaseMigration();
   }
@@ -482,7 +463,6 @@ async function executeTaskInBolt(data) {
     await handleErrorFix();
   }
 
-  // Find the AI prompt box
   const promptBox = document.querySelector(
     ".bg-bolt-elements-prompt-background textarea"
   );
@@ -493,18 +473,14 @@ async function executeTaskInBolt(data) {
 
   console.log("Found prompt box:", promptBox);
 
-  // Wait for textarea to be enabled
   await waitForCondition(() => !promptBox.disabled, 10000);
 
-  // Clear and set the task text
   promptBox.value = "";
   promptBox.focus();
 
-  // Type the task (instant typing)
   console.log("Typing task:", data.task.text, data);
   await typeText(promptBox, data.task.text);
 
-  // Find the specific submit button that user confirmed works
   const submitButton = document.querySelector(
     ".bg-bolt-elements-prompt-background button.absolute"
   );
@@ -518,10 +494,8 @@ async function executeTaskInBolt(data) {
   console.log("Found the .absolute button, clicking it");
   submitButton.click();
 
-  // Wait for THE SPECIFIC BUTTON to disappear - once gone, task is complete!
   console.log("Waiting for the .absolute button to disappear...");
 
-  // Get wait time from settings (default to 3 minutes if not set)
   const waitTime = data.settings.waitTime || 180000;
   const waitTimeText =
     waitTime === -1 ? "indefinitely" : `${waitTime / 1000} seconds`;
@@ -545,7 +519,6 @@ async function executeTaskInBolt(data) {
     "✅ The .absolute button disappeared - task processing complete!"
   );
 
-  // Update status - processing is complete once button disappears
   if (assistantIframe) {
     assistantIframe.contentWindow.postMessage(
       {
@@ -558,17 +531,15 @@ async function executeTaskInBolt(data) {
 
   console.log("🎉 Task execution completed successfully!");
 
-  // Small delay to ensure page is stable before moving to next task
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Task completed successfully
   if (assistantIframe) {
     assistantIframe.contentWindow.postMessage(
       {
         type: "AUTOMATION_STEP_COMPLETE",
         taskIndex: data.taskIndex,
         totalTasks: data.totalTasks,
-        task: data.task, // Include the full task data so we can mark it as completed
+        task: data.task,
       },
       "*"
     );
@@ -581,7 +552,6 @@ async function executeTaskInBolt(data) {
 async function handleErrorFix() {
   console.log("Checking for error fix prompts...");
 
-  // Look for error fix-related buttons or prompts by text content
   const errorFixButton = findElementByText(
     "button.bg-bolt-elements-button-primary-background",
     "Attempt fix"
@@ -593,10 +563,8 @@ async function handleErrorFix() {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Wait for the error fix process to complete by waiting for the submit button to appear and disappear
     console.log("Waiting for error fix process to complete...");
 
-    // First wait for the submit button to appear (indicating error fix is processing)
     await waitForCondition(
       () =>
         document.querySelector(
@@ -605,13 +573,12 @@ async function handleErrorFix() {
       30000
     );
 
-    // Then wait for the submit button to disappear (indicating error fix is complete)
     await waitForCondition(
       () =>
         !document.querySelector(
           ".bg-bolt-elements-prompt-background button.absolute"
         ),
-      180000 // Longer timeout for error fix process
+      180000
     );
 
     console.log("✅ Error fix process completed");
@@ -621,7 +588,6 @@ async function handleErrorFix() {
 async function handleSupabaseMigration() {
   console.log("Checking for Supabase migration prompts...");
 
-  // Look for migration-related buttons or prompts
   const migrationButton =
     findElementByText("button", "Run Migration") ||
     findElementByText("button", "migration") ||
@@ -632,7 +598,6 @@ async function handleSupabaseMigration() {
     console.log("Found migration button, clicking...");
     migrationButton.click();
 
-    // Wait for migration to complete
     await waitForCondition(() => !migrationButton.disabled, 10000);
   }
 }
@@ -644,7 +609,6 @@ function handleStopAutomation() {
   automationState.retryCount = 0;
 }
 
-// Utility functions for automation
 async function waitForCondition(condition, timeout = 5000) {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
@@ -666,7 +630,6 @@ async function waitForCondition(condition, timeout = 5000) {
 async function typeText(element, text, slowType = false) {
   return new Promise((resolve) => {
     if (!slowType) {
-      // Instant typing - set value directly
       element.value = text;
       element.dispatchEvent(new Event("input", { bubbles: true }));
       element.dispatchEvent(new Event("change", { bubbles: true }));
@@ -674,19 +637,17 @@ async function typeText(element, text, slowType = false) {
       return;
     }
 
-    // Slow/human-like typing
     let index = 0;
 
     const type = () => {
       if (index < text.length) {
         element.value += text[index];
 
-        // Trigger input events
         element.dispatchEvent(new Event("input", { bubbles: true }));
         element.dispatchEvent(new Event("change", { bubbles: true }));
 
         index++;
-        setTimeout(type, 50 + Math.random() * 50); // Variable typing speed
+        setTimeout(type, 50 + Math.random() * 50);
       } else {
         resolve();
       }
@@ -696,7 +657,6 @@ async function typeText(element, text, slowType = false) {
   });
 }
 
-// Enhanced element finder (case-insensitive contains)
 function findElementByText(selector, text) {
   const elements = document.querySelectorAll(selector);
   return Array.from(elements).find((el) =>
@@ -704,21 +664,18 @@ function findElementByText(selector, text) {
   );
 }
 
-// Add CSS selector extension for :contains()
 if (!Element.prototype.contains) {
   Element.prototype.contains = function (text) {
     return this.textContent.toLowerCase().includes(text.toLowerCase());
   };
 }
 
-// URL change detection
 let lastUrl = location.href;
 new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
     lastUrl = url;
 
-    // Close the iframe when URL changes
     if (assistantIframe) {
       closeAssistant();
     }
@@ -727,7 +684,6 @@ new MutationObserver(() => {
   }
 }).observe(document, { subtree: true, childList: true });
 
-// Initialize
 setTimeout(() => {
   console.log("Initializing Nuts for Bolt assistant...");
   injectButton();

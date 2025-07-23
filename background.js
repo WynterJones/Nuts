@@ -7,10 +7,10 @@ class BackgroundService {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === "OPENAI_REQUEST") {
         this.handleOpenAIRequest(message, sender, sendResponse);
-        return true; // Indicates we will respond asynchronously
+        return true;
       } else if (message.type === "GENERATE_TASKS") {
         this.handleTaskGeneration(message, sender, sendResponse);
-        return true; // Indicates we will respond asynchronously
+        return true;
       }
     });
   }
@@ -37,10 +37,9 @@ class BackgroundService {
         message.context,
         config.openai_api_key,
         config.openai_model || "gpt-4o-mini",
-        true // Enable function calling
+        true
       );
 
-      // If the AI used functions, enhance the response to confirm what was done
       let responseContent = result.content;
       if (result.functionCalls && result.functionCalls.length > 0) {
         const functionSummary = this.generateFunctionCallSummary(
@@ -53,7 +52,6 @@ class BackgroundService {
         ) {
           responseContent = functionSummary;
         } else if (functionSummary) {
-          // Append function summary to existing response
           responseContent = `${responseContent}\n\n${functionSummary}`;
         }
       }
@@ -88,7 +86,7 @@ class BackgroundService {
         return;
       }
 
-      const useSupabase = message.useSupabase !== false; // Default to true if not specified
+      const useSupabase = message.useSupabase !== false;
 
       console.log("useSupabase", useSupabase);
       const techStack = useSupabase
@@ -164,7 +162,7 @@ ${
         { projectData: message.projectData },
         config.openai_api_key,
         config.openai_model || "gpt-4o-mini",
-        true // Enable function calling
+        true
       );
 
       let updatedProjectData = { ...message.projectData };
@@ -188,10 +186,8 @@ ${
           }
         });
 
-        // Save the generated starter prompt to settings if one was generated
         if (generatedStarterPrompt) {
           try {
-            // Save to global app settings for future projects
             const currentSettings = await chrome.storage.local.get(
               "app_settings"
             );
@@ -199,7 +195,6 @@ ${
             settings.starterPrompt = generatedStarterPrompt;
             await chrome.storage.local.set({ app_settings: settings });
 
-            // Also add to the project's specific settings
             if (!updatedProjectData.settings) {
               updatedProjectData.settings = {
                 starterPrompt: "",
@@ -218,7 +213,6 @@ ${
           }
         }
 
-        // Add a welcome message to chat history
         const taskCount = result.functionCalls.filter(
           (call) => call.name === "add_task"
         ).length;
@@ -267,7 +261,6 @@ These tasks cover everything from database setup to deployment. Start with the h
       max_tokens: 1000,
     };
 
-    // Add function calling capabilities
     if (withFunctions && context?.projectData) {
       requestBody.tools = [
         {
@@ -391,7 +384,6 @@ These tasks cover everything from database setup to deployment. Start with the h
       functionCalls: [],
     };
 
-    // Process function calls
     if (choice.message?.tool_calls) {
       result.functionCalls = choice.message.tool_calls.map((call) => ({
         name: call.function.name,
@@ -531,7 +523,6 @@ Tech Stack: ${
       remove_task: [],
     };
 
-    // Group function calls by type
     functionCalls.forEach((call) => {
       if (callsByType[call.name]) {
         callsByType[call.name].push(call);
@@ -540,7 +531,6 @@ Tech Stack: ${
 
     const summaryParts = [];
 
-    // Handle added tasks
     if (callsByType.add_task.length > 0) {
       const taskList = callsByType.add_task
         .map(
@@ -562,7 +552,6 @@ Tech Stack: ${
       );
     }
 
-    // Handle completed tasks
     if (callsByType.complete_task.length > 0) {
       const completedTasks = callsByType.complete_task
         .map((call) => `• ${call.arguments.task_id}`)
@@ -575,7 +564,6 @@ Tech Stack: ${
       );
     }
 
-    // Handle edited tasks
     if (callsByType.edit_task.length > 0) {
       const editedTasks = callsByType.edit_task
         .map(
@@ -591,7 +579,6 @@ Tech Stack: ${
       );
     }
 
-    // Handle removed tasks
     if (callsByType.remove_task.length > 0) {
       const removedTasks = callsByType.remove_task
         .map((call) => `• ${call.arguments.task_id}`)
