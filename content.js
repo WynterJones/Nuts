@@ -473,6 +473,15 @@ async function handleTaskExecution(data) {
 }
 
 async function executeTaskInBolt(data) {
+  // Handle Supabase migration if enabled
+  if (data.settings.autoSupabaseMigration) {
+    await handleSupabaseMigration();
+  }
+
+  if (data.settings.autoErrorFix) {
+    await handleErrorFix();
+  }
+
   // Find the AI prompt box
   const promptBox = document.querySelector(
     ".bg-bolt-elements-prompt-background textarea"
@@ -547,11 +556,6 @@ async function executeTaskInBolt(data) {
     );
   }
 
-  // Handle Supabase migration if enabled
-  if (data.settings.autoSupabaseMigration) {
-    await handleSupabaseMigration();
-  }
-
   console.log("🎉 Task execution completed successfully!");
 
   // Small delay to ensure page is stable before moving to next task
@@ -572,6 +576,30 @@ async function executeTaskInBolt(data) {
 
   automationState.currentTask = null;
   automationState.isRunning = false;
+}
+
+async function handleErrorFix() {
+  console.log("Checking for error fix prompts...");
+
+  // Look for error fix-related buttons or prompts by text content
+  const errorFixButton = findElementByText(
+    "button.bg-bolt-elements-button-primary-background",
+    "Attempt fix"
+  );
+
+  if (errorFixButton && !errorFixButton.disabled) {
+    console.log("Found error fix button, clicking...");
+    errorFixButton.click();
+
+    await waitForCondition(() => !errorFixButton.disabled, 10000);
+    await waitForCondition(
+      () =>
+        !document.querySelector(
+          ".bg-bolt-elements-prompt-background button.absolute"
+        ),
+      10000
+    );
+  }
 }
 
 async function handleSupabaseMigration() {
