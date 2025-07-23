@@ -199,20 +199,17 @@ class ChatManager {
       this.chatMessages.appendChild(defaultSystemMessage);
     }
 
+    console.log("projectData", projectData);
     // Render chat history, but filter out the initial project description message
     if (projectData?.chatHistory) {
-      projectData.chatHistory
-        .filter((message) => {
-          // Hide the initial project description message that's meant for AI context only
-          return !(
-            message.role === "user" &&
-            message.content.includes("New project:") &&
-            message.content.includes("Description:")
-          );
-        })
-        .forEach((message) => {
-          this.renderMessage(message);
-        });
+      // remmove first message if it's the initial project description message
+      if (projectData.chatHistory[0].role === "user") {
+        projectData.chatHistory.shift();
+      }
+
+      projectData.chatHistory.forEach((message) => {
+        this.renderMessage(message);
+      });
     }
 
     this.scrollToBottom();

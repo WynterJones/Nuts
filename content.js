@@ -673,6 +673,12 @@ new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
     lastUrl = url;
+
+    // Close the iframe when URL changes
+    if (assistantIframe) {
+      closeAssistant();
+    }
+
     detectProjectChange();
   }
 }).observe(document, { subtree: true, childList: true });
