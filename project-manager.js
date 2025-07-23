@@ -528,6 +528,7 @@ class ProjectManager {
     const modalBody = document.querySelector(".modal-body");
     const modalFooter = document.querySelector(".modal-footer");
     const formGroups = document.querySelectorAll(".form-group");
+    const modalHeader = document.querySelector(".modal-header");
 
     // Hide form inputs while processing
     formGroups.forEach((group) => {
@@ -539,6 +540,11 @@ class ProjectManager {
       modalFooter.style.display = "none";
     }
 
+    // Hide modal header
+    if (modalHeader) {
+      modalHeader.style.display = "none";
+    }
+
     // Add processing message
     if (modalBody) {
       const processingDiv = document.createElement("div");
@@ -547,7 +553,7 @@ class ProjectManager {
       processingDiv.innerHTML = `
         <div class="processing-content">
           <div class="processing-spinner"></div>
-          <p>AI is generating your project tasks and starter prompt...</p>
+          <p>Nuts AI is generating your project...</p>
           <p class="processing-subtext">This may take a few seconds</p>
         </div>
       `;
