@@ -591,7 +591,12 @@ async function handleErrorFix() {
     console.log("Found error fix button, clicking...");
     errorFixButton.click();
 
-    await waitForCondition(() => !errorFixButton.disabled, 10000);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await waitForCondition(
+      () => !errorFixButton.classList.contains("disabled"),
+      10000
+    );
     await waitForCondition(
       () =>
         !document.querySelector(
