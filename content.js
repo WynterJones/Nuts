@@ -593,17 +593,28 @@ async function handleErrorFix() {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    // Wait for the error fix process to complete by waiting for the submit button to appear and disappear
+    console.log("Waiting for error fix process to complete...");
+
+    // First wait for the submit button to appear (indicating error fix is processing)
     await waitForCondition(
-      () => !errorFixButton.classList.contains("disabled"),
-      10000
+      () =>
+        document.querySelector(
+          ".bg-bolt-elements-prompt-background button.absolute"
+        ),
+      30000
     );
+
+    // Then wait for the submit button to disappear (indicating error fix is complete)
     await waitForCondition(
       () =>
         !document.querySelector(
           ".bg-bolt-elements-prompt-background button.absolute"
         ),
-      10000
+      180000 // Longer timeout for error fix process
     );
+
+    console.log("✅ Error fix process completed");
   }
 }
 
