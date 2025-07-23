@@ -501,6 +501,27 @@ async function executeTaskInBolt(data) {
   automationState.isRunning = false;
 }
 
+async function handleSupabaseMigration() {
+  const migrationButton = findElementByText(
+    "button.bg-bolt-elements-button-supabase-background",
+    "Apply changes"
+  );
+
+  if (migrationButton && !migrationButton.disabled) {
+    migrationButton.click();
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await waitForCondition(
+      () =>
+        !document.querySelector(
+          "button.bg-bolt-elements-button-supabase-background"
+        ),
+      180000
+    );
+  }
+}
+
 async function handleErrorFix() {
   const errorFixButton = findElementByText(
     "button.bg-bolt-elements-button-primary-background",
@@ -527,20 +548,6 @@ async function handleErrorFix() {
         ),
       180000
     );
-  }
-}
-
-async function handleSupabaseMigration() {
-  const migrationButton =
-    findElementByText("button", "Run Migration") ||
-    findElementByText("button", "migration") ||
-    document.querySelector('[data-testid*="migration"]') ||
-    document.querySelector('button[aria-label*="migration"]');
-
-  if (migrationButton && !migrationButton.disabled) {
-    migrationButton.click();
-
-    await waitForCondition(() => !migrationButton.disabled, 10000);
   }
 }
 
